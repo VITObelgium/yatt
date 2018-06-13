@@ -8,7 +8,7 @@ import calendar
 #
 #    well...
 #
-secondsinday      = time.mktime( (0, 0, 1, 0, 0, 0, 0, 0, 0) ) - time.mktime( (0, 0, 0, 0, 0, 0, 0, 0, 0) )
+secondsinday      = time.mktime( (2000, 0, 1, 0, 0, 0, 0, 0, 0) ) - time.mktime( (2000, 0, 0, 0, 0, 0, 0, 0, 0) )
 defaultfakeyear   = 2000
 
 #

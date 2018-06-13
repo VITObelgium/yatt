@@ -9,7 +9,7 @@ def makedatacube(listofdatarasters, listofflagrasters=None, minimumdatavalue=Non
     list of data rasters: periodic list containing either numpy.ndarray's containing the data or None for missing periods 
     list of flag rasters: periodic list containing either boolean numpy.ndarray's of identical shape as the data or None for missing periods
     minimum data value and maximum data value: indicating valid range of the values in the data rasters
-    
+
     performs basic checks on input data. converts list of input rasters to numpy cube in which flagged values and values out
     of range are replaced with nan's and missing rasters are replaced with rasters filled with nan's
     """
@@ -46,7 +46,7 @@ def makedatacube(listofdatarasters, listofflagrasters=None, minimumdatavalue=Non
     #    fill it out 
     #
     for iIdx in range(len(listofdatarasters)):
-        
+
         if listofdatarasters[iIdx] is not None:
             #
             #    available rasters are copied in to arrays of float
@@ -187,7 +187,7 @@ def _flaglocalextrema(numpydatacube, maxdipvalueornumpycube, maxdifvalueornumpyc
         if numpymaxdipcube.shape != numpydatacube.shape:                                       raise ValueError("maximum dip and data cube must have identical shapes")
         if not numpy.allclose(numpymaxdipcube.astype(float), numpymaxdipcube, equal_nan=True): raise ValueError("maximum dip cube must contain numeric values")
         if numpy.any((numpymaxdipcube[~numpy.isnan(numpymaxdipcube)] <= 0)):                   raise ValueError("maximum dip cube must contain positive values")
-    
+
     numpymaxdifcube = None
     if maxdifvalueornumpycube is not None:
         if numpy.isscalar(maxdifvalueornumpycube):
@@ -237,20 +237,20 @@ def _flaglocalextrema(numpydatacube, maxdipvalueornumpycube, maxdifvalueornumpyc
             prevrasterindiceschoicelist = range(iIdx)[::-1] # reversed
             prevrasterindicescondlist   = [~numpy.isnan(numpydatacube[i])      for i in prevrasterindiceschoicelist]
             prevrasterindices           = numpy.select(prevrasterindicescondlist, prevrasterindiceschoicelist, default=defaultindexraster)
-            
+
             prevrastervalueschoicelist  = [numpydatacube[i]                    for i in prevrasterindiceschoicelist]
             prevrastervaluescondlist    = [prevrasterindices == i              for i in prevrasterindiceschoicelist]
             prevrastervalues            = numpy.select(prevrastervaluescondlist, prevrastervalueschoicelist, default=defaultvalueraster)
-            
-            
+
+
             nextrasterindiceschoicelist = range(iIdx+1,numberofrasters)
             nextrasterindicescondlist   = [~numpy.isnan(numpydatacube[i])      for i in nextrasterindiceschoicelist]
             nextrasterindices           = numpy.select(nextrasterindicescondlist, nextrasterindiceschoicelist, default=defaultindexraster)
-            
+
             nextrastervalueschoicelist  = [numpydatacube[i]                    for i in nextrasterindiceschoicelist]
             nextrastervaluescondlist    = [nextrasterindices == i              for i in nextrasterindiceschoicelist]
             nextrastervalues            = numpy.select(nextrastervaluescondlist, nextrastervalueschoicelist, default=defaultvalueraster)
-    
+
             prevrasterdistance          = iIdx - prevrasterindices
             nextrasterdistance          = nextrasterindices - iIdx
             #
@@ -258,10 +258,10 @@ def _flaglocalextrema(numpydatacube, maxdipvalueornumpycube, maxdifvalueornumpyc
             #
             comparabletoprev = notnansmask & ~numpy.isnan(prevrastervalues)
             if maxgap is not None: comparabletoprev &= prevrasterdistance < maxgap
-            
+
             comparabletonext = notnansmask & ~numpy.isnan(nextrastervalues)
             if maxgap is not None: comparabletonext &= nextrasterdistance < maxgap
-            
+
             comparabletoboth = comparabletoprev & comparabletonext
             #
             #
@@ -277,7 +277,7 @@ def _flaglocalextrema(numpydatacube, maxdipvalueornumpycube, maxdifvalueornumpyc
                     isextremum = comparabletoboth
                     isextremum &= maskextrema(numpydatacube[iIdx], prevrastervalues, (prevrasterdistance * numpymaxdipcube[iIdx]))
                     isextremum &= maskextrema(numpydatacube[iIdx], nextrastervalues, (nextrasterdistance * numpymaxdipcube[iIdx]))
-                    
+
                 if numpymaxdifcube is not None: 
                     isdip = False
                     isdip  = maskextrema(numpydatacube[iIdx], prevrastervalues, (prevrasterdistance * numpymaxdifcube[iIdx]))
@@ -305,10 +305,10 @@ def _flaglocalextrema(numpydatacube, maxdipvalueornumpycube, maxdifvalueornumpyc
         
         remainingnumberofvalues = numpy.sum(~numpy.isnan(numpydatacube))
         removednumberofvalues   = previousnumberofvalues - remainingnumberofvalues
-        print "flaglocalextrema pass : %s removed %s values. %s values remaining. %s values removed in total" % (iteration+1, removednumberofvalues, remainingnumberofvalues, initialnumberofvalues - remainingnumberofvalues)
+        print ("flaglocalextrema pass : %s removed %s values. %s values remaining. %s values removed in total" % (iteration+1, removednumberofvalues, remainingnumberofvalues, initialnumberofvalues - remainingnumberofvalues))
         previousnumberofvalues = remainingnumberofvalues
         if removednumberofvalues <= 0:
-            print "flaglocalextrema pass : %s - exits" % (iteration+1,)
+            print ("flaglocalextrema pass : %s - exits" % (iteration+1))
             break
 
     #
@@ -342,12 +342,12 @@ def linearinterpolation(numpydatacube):
         prevrasterindiceschoicelist = range(iIdx)[::-1] # reversed
         prevrasterindicescondlist   = [~numpy.isnan(numpydatacube[i])      for i in prevrasterindiceschoicelist]
         prevrasterindices           = numpy.select(prevrasterindicescondlist, prevrasterindiceschoicelist, default=defaultindexraster)
-        
+
         prevrastervalueschoicelist  = [numpydatacube[i]                    for i in prevrasterindiceschoicelist]
         prevrastervaluescondlist    = [prevrasterindices == i              for i in prevrasterindiceschoicelist]
         prevrastervalues            = numpy.select(prevrastervaluescondlist, prevrastervalueschoicelist, default=defaultvalueraster)
-        
-        
+
+
         nextrasterindiceschoicelist = range(iIdx+1,numberofrasters)
         nextrasterindicescondlist   = [~numpy.isnan(numpydatacube[i])      for i in nextrasterindiceschoicelist]
         nextrasterindices           = numpy.select(nextrasterindicescondlist, nextrasterindiceschoicelist, default=defaultindexraster)
@@ -388,7 +388,7 @@ class WeightTypeId(object):
 class WeightValues(object):
     """
     """
-    
+
     #
     #
     #
@@ -422,7 +422,7 @@ class WeightValues(object):
         if aboutequal is not None and ( (float(aboutequal) != aboutequal) or (aboutequal < 0) ): raise ValueError(" weight for 'equal' must be positive value or None (is %s)" % (aboutequal))
         if default    is not None and ( (float(default)    != default)    or (default    < 0) ): raise ValueError(" weight for 'default' must be positive value, nan or None (is %s)" % (default))
 
-        
+
         self._weightsdict = dict({
             WeightTypeId.MAXIMUM    :  WeightValues._defaultweightvalue if maximum    is None else maximum,
             WeightTypeId.MINIMUM    :  WeightValues._defaultweightvalue if minimum    is None else minimum,
@@ -443,20 +443,20 @@ class WeightValues(object):
         if negslope   is not None and ( (float(negslope)   != negslope)   or (negslope   < 0) ):    raise ValueError(" weight for 'negative slope' must be positive value or None (is %s)" % (negslope))
         if aboutequal is not None and ( (float(aboutequal) != aboutequal) or (aboutequal < 0) ):    raise ValueError(" weight for 'equal' must be positive value or None (is %s)" % (aboutequal))
         if default    is not None and ( (float(default)    != default)    or (default    < 0) ):    raise ValueError(" weight for 'default' must be positive value or None (is %s)" % (default))
-        
+
         return WeightValues(self._weightsdict[WeightTypeId.MAXIMUM]    if maximum    is None else maximum,
                             self._weightsdict[WeightTypeId.MINIMUM]    if minimum    is None else minimum,
                             self._weightsdict[WeightTypeId.POSSLOPE]   if posslope   is None else posslope,
                             self._weightsdict[WeightTypeId.NEGSLOPE]   if negslope   is None else negslope,
                             self._weightsdict[WeightTypeId.ABOUTEQUAL] if aboutequal is None else aboutequal,
                             self._weightsdict[WeightTypeId.DEFAULT]    if default    is None else default)
-        
+
     #
     #
     #
     def getweightsdict(self):
         return self._weightsdict.copy()
-    
+
     #
     #
     #
@@ -494,7 +494,7 @@ def makeweighttypescube(numpydatacube, aboutequalepsilon=0):
     #
     #
     numpyweighttypescube = numpy.full_like(numpydatacube, WeightTypeId.DEFAULT, dtype = int)
-    
+
     curr_GT_prev     = numpy.empty_like(numpydatacube[0], dtype=bool)
     curr_GT_next     = numpy.empty_like(numpydatacube[0], dtype=bool)
     curr_LT_prev     = numpy.empty_like(numpydatacube[0], dtype=bool)
@@ -514,7 +514,7 @@ def makeweighttypescube(numpydatacube, aboutequalepsilon=0):
     #
     #
     for iIdx in range(numberofrasters):
-        
+
         #
         #    'previous' raster values can be obtained from leading rasters
         #
@@ -535,7 +535,7 @@ def makeweighttypescube(numpydatacube, aboutequalepsilon=0):
         notnanmask    = ~numpy.isnan(numpydatacube[iIdx])   
         deltacurrprev = numpydatacube[iIdx][notnanmask] - prevvaluesraster[notnanmask] # prevvaluesraster can contain nan's only where numpydatacube[iIdx] does due to default selection above
         deltacurrnext = numpydatacube[iIdx][notnanmask] - nextvaluesraster[notnanmask] # nextvaluesraster can contain nan's only where numpydatacube[iIdx] does due to default selection above
-        
+
         curr_GT_prev.fill(False);  curr_GT_prev[notnanmask] = deltacurrprev > 0.
         curr_GT_next.fill(False);  curr_GT_next[notnanmask] = deltacurrnext > 0.
         curr_LT_prev.fill(False);  curr_LT_prev[notnanmask] = deltacurrprev < 0.
@@ -549,9 +549,9 @@ def makeweighttypescube(numpydatacube, aboutequalepsilon=0):
             (curr_LT_prev & curr_LT_next),
             (curr_GT_prev | curr_LT_next),
             (curr_LT_prev | curr_LT_next)]
-    
+
         numpyweighttypescube[iIdx] = numpy.select(weightcondlist, weighttypeslist, defaultweightraster) 
-    
+
     return numpyweighttypescube
 
 #
@@ -576,7 +576,7 @@ def makesimpleweightscube(weighttypescube, weightvalues = WeightValues.defaultWe
     numpyweightscube[weighttypescube == WeightTypeId.NEGSLOPE]   = weightvalues.getweight(WeightTypeId.NEGSLOPE)
     numpyweightscube[weighttypescube == WeightTypeId.ABOUTEQUAL] = weightvalues.getweight(WeightTypeId.ABOUTEQUAL)
     numpyweightscube[weighttypescube == WeightTypeId.DEFAULT]    = weightvalues.getweight(WeightTypeId.DEFAULT)
-    
+
     return numpyweightscube
 
 #
@@ -648,7 +648,7 @@ def weightedlinearregression(numpydatacube, numpyweightscube=None, minimumdatava
     #
     xindicescube = numpy.array( [ numpy.full_like(numpydatacube[0], i, dtype=float) for i in range(numberofrasters) ])
     xdatacube    = numpy.copy(xindicescube)
-    
+
     isnanscube = numpy.isnan(numpydatacube)
     xdatacube[isnanscube]        = 0
     numpyweightscube[isnanscube] = 0
@@ -706,7 +706,7 @@ def swets(regressionwindow, combinationwindow, numpydatacube, numpyweightscube= 
     #
     if((int(regressionwindow)  != regressionwindow)  or (regressionwindow  < 2)): 
         raise ValueError("regressionwindow must be an int >= 2")
-    left_regression_size  = regressionwindow / 2 ; right_regression_size = left_regression_size
+    left_regression_size  = int(regressionwindow / 2) ; right_regression_size = left_regression_size
     if ( regressionwindow == 2 * right_regression_size ) : right_regression_size -= 1
     #
     #    left and right distances for point in combination window
@@ -715,7 +715,7 @@ def swets(regressionwindow, combinationwindow, numpydatacube, numpyweightscube= 
     #
     if((int(combinationwindow) != combinationwindow) or (combinationwindow < 1) or (regressionwindow < combinationwindow) ): 
         raise ValueError("combinationwindow must be an int >= 1 and <= regressionwindow (%s)" % (regressionwindow,))
-    left_combination_size  = combinationwindow / 2 ; right_combination_size = left_combination_size
+    left_combination_size  = int(combinationwindow / 2) ; right_combination_size = left_combination_size
     if ( combinationwindow == 2 * right_combination_size ) : right_combination_size -= 1
     #
     #
@@ -739,21 +739,21 @@ def swets(regressionwindow, combinationwindow, numpydatacube, numpyweightscube= 
     #
     #
     for iIdx in range(0,numberofrasters):
-        
+
         iRegressionFirst = iIdx - left_regression_size
         iRegressionLast  = iIdx + right_regression_size
-            
+
         if iRegressionFirst < 0 :               iRegressionFirst = 0
         if numberofrasters <= iRegressionLast : iRegressionLast  = numberofrasters - 1
-            
+
         regressiondatacube    = numpydatacube[iRegressionFirst:iRegressionLast+1]
         regressionweightscube = numpyweightscube[iRegressionFirst:iRegressionLast+1]
-            
+
         regressionvaluescube = weightedlinearregression(regressiondatacube, regressionweightscube, minimumdatavalue=minimumdatavalue, maximumdatavalue=maximumdatavalue)
-        
+
         iCombinationFirst = iIdx - left_combination_size
         iCombinationLast  = iIdx + right_combination_size
-        
+
         #
         #    we assume combinationwindow <= regressionwindow
         #
@@ -809,7 +809,7 @@ def wig_whittaker(lmbda, numpydatacube, numpyweightscube=None, minimumdatavalue=
     for iIdx in range(len (numpydatacube) ):
         if not (~numpy.isnan(numpydatacube[iIdx])).any(): continue
         countRasters +=1
-     
+
     #
     #    reference shape from first data raster
     #
@@ -894,7 +894,7 @@ def _dowhittaker(lmbda, orderofdifferences, numpydatacube, numpyweightscube=None
     #
     #
     for iteration in range(passes):
-        
+
         #
         #    'keeping the maximum values' is only applied in case of intermediate iterations, not for the 'last' (or only - in case passes = 1)
         #    this means that the maximum values are not actually retained in the end result
@@ -920,12 +920,12 @@ def _dowhittaker(lmbda, orderofdifferences, numpydatacube, numpyweightscube=None
         elif orderofdifferences == 2:
             smoothedcube[:] = _whittaker_second_differences(lmbda, smoothedcube, weightscube)
         else: raise ValueError("orderofdifferences: only 1 and 2 supported (is %s)" % (orderofdifferences))
-        
+
         #
         #    update the nan's raster, we expect this to be all True
         #
         notnancube[:] = ~numpy.isnan(smoothedcube)
-        
+
         #
         #    clip results to valid data range
         #
@@ -940,10 +940,10 @@ def _dowhittaker(lmbda, orderofdifferences, numpydatacube, numpyweightscube=None
             smoothedcube[exeedingminimum] = minimumdatavalue
     #
     #
-    #                
+    #
     return smoothedcube
 
-    
+
 #
 #
 #
@@ -966,21 +966,21 @@ def _whittaker_first_differences(lmbda, y, w):
     d[0] = w[0] + lmbda
     c[0] = - 1.0 * lmbda / d[0]
     z[0] = w[0] * y[0]
-    
+
     for iIdx in range (1, numberofrasters-1):
         d[iIdx] = w[iIdx] + 2.0 * lmbda - c[iIdx-1] * c[iIdx-1] * d[iIdx-1];
         c[iIdx] = - lmbda / d[iIdx]
         z[iIdx] = w[iIdx] * y[iIdx] - c[iIdx-1] * z[iIdx-1];
-   
+
     d[numberofrasters-1] =  w[numberofrasters-1] + lmbda - c[numberofrasters-2] * c[numberofrasters-2] * d[numberofrasters-2];
     z[numberofrasters-1] = (w[numberofrasters-1] * y[numberofrasters-1]         - c[numberofrasters-2] * z[numberofrasters-2]) / d[numberofrasters-1]
-    
+
     for iIdx in range (numberofrasters-1)[::-1] :
         z[iIdx] = z[iIdx] / d[iIdx] - c[iIdx] * z[iIdx+1];
     
     #
     #
-    #    
+    #
     return z
 
 #
@@ -1007,7 +1007,7 @@ def _whittaker_second_differences(lmbda, y, w):
     c[0] = -2.0 * lmbda / d[0]
     e[0] = lmbda / d[0] 
     z[0] = w[0] * y[0]
-    
+
     d[1] = w[1] + 5 * lmbda - d[0] * c[0] *  c[0];
     c[1] = (-4 * lmbda - d[0] * c[0] * e[0]) / d[1];
     e[1] = lmbda / d[1];
@@ -1024,18 +1024,18 @@ def _whittaker_second_differences(lmbda, y, w):
     d[m - 1] = w[m - 1] + 5.0 * lmbda -c[i1] * c[i1] * d[i1] - e[i2] * e[i2] * d[i2];
     c[m - 1] = (-2 * lmbda - d[i1] * c[i1] * e[i1]) / d[m - 1];
     z[m - 1] = w[m - 1] * y[m - 1] - c[i1] * z[i1] - e[i2] * z[i2];
-    
+
     i1 = m - 1; i2 = m - 2;
     d[m] = w[m] + lmbda - c[i1] * c[i1] * d[i1] - e[i2] * e[i2] * d[i2];
     z[m] = (w[m] * y[m] - c[i1] * z[i1] - e[i2] * z[i2]) / d[m];
     z[m - 1] = z[m - 1] / d[m - 1] - c[m - 1] * z[m];
-    
+
     for iIdx in range (numberofrasters-2)[::-1] :
         z[iIdx] = z[iIdx] / d[iIdx] - c[iIdx] * z[iIdx + 1] - e[iIdx] * z[iIdx + 2];
-    
+
     #
     #
-    #    
+    #
     return z
 
 

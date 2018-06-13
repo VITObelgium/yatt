@@ -3,13 +3,13 @@
 #
 import os
 import re
-import yutils.futils
-import yutils.dutils
-import osgeo.gdal
 import numpy
+import osgeo.gdal
 import matplotlib.pyplot
 import matplotlib.colors
 import yatt.smooth
+import yutils.futils
+import yutils.dutils
 
 #
 #    test data location
@@ -23,7 +23,7 @@ sztestdatarootdirectory = os.path.join(sztestdatarootdirectory, "data")
 #
 def makefilenamepattern(date_yyyymmdd, sztype):
     szpattern = "S2[AB]_" + date_yyyymmdd + "T.*?Z_" + sztile_ttttt + "_" + sztype + "_" + szversion_vvvv + ".tif"
-    return re.compile(szpattern, re.IGNORECASE)
+    return re.compile(szpattern, flags=re.IGNORECASE)
 
 #
 #    some params about the test data
@@ -91,19 +91,19 @@ defaultswetsweightvalues = yatt.smooth.WeightValues(
 #    helper for reverse engineering of the data
 #
 def makeflaggedenvi():
-    
+
     #
     #
     #
     inputdirectory   = os.path.join(sztestdatarootdirectory, "2-AVy-ofdls9bS8_4_3GLH")
     yyyymmddfirst    = 20170101
     yyyymmddlast     = 20180101
-    
+
     #
     #
     #    
     for date_yyyymmdd in yutils.dutils.g_yyyymmdd_interval(yyyymmddfirst, yyyymmddlast):
-        
+
         ptFAPARpattern = makefilenamepattern(date_yyyymmdd, "FAPAR_10M")
         ptCLOUDpattern = makefilenamepattern(date_yyyymmdd, "CLOUDMASK_10M")
         ptSHADWpattern = makefilenamepattern(date_yyyymmdd, "SHADOWMASK_10M")
@@ -116,7 +116,7 @@ def makeflaggedenvi():
 
         if not (szFAPARfilenames and szCLOUDfilenames and szSHADWfilenames and szSCENEfilenames) :
             continue
-        
+
         #
         #    all files for this date are available 
         #
@@ -156,8 +156,8 @@ def makeflaggedenvi():
         #
         #
         flagged_numpyparray = numpy.copy(fapar_numpyparray)
-        
-        
+
+
         flagged_numpyparray[mask_fapar_no_data & mask_scene_no_data]                   = 210 + scene_no_data_value
         flagged_numpyparray[mask_fapar_no_data & mask_scene_saturated_or_defective]    = 210 + scene_saturated_or_defective_value
         flagged_numpyparray[mask_fapar_no_data & mask_scene_dark_area_pixels]          = 210 + scene_dark_area_pixels_value
@@ -167,8 +167,8 @@ def makeflaggedenvi():
         flagged_numpyparray[mask_fapar_no_data & mask_scene_cloud_high_probability]    = 210 + scene_cloud_high_probability_value
         flagged_numpyparray[mask_fapar_no_data & mask_scene_thin_cirrus]               = 210 + scene_thin_cirrus_value
         flagged_numpyparray[mask_fapar_no_data & mask_scene_snow]                      = 210 + scene_snow_value
-        
-        
+ 
+
         flagged_numpyparray[mask_fapar_data & mask_scene_no_data]                      = 230 + scene_no_data_value
         flagged_numpyparray[mask_fapar_data & mask_scene_saturated_or_defective]       = 230 + scene_saturated_or_defective_value
         flagged_numpyparray[mask_fapar_data & mask_scene_dark_area_pixels]             = 230 + scene_dark_area_pixels_value
@@ -180,7 +180,7 @@ def makeflaggedenvi():
         flagged_numpyparray[mask_fapar_data & mask_scene_snow]                         = 230 + scene_snow_value
 
         raw_numpyparray = numpy.copy(fapar_numpyparray)
-        raw_numpyparray[mask_fapar_no_data] = 255       
+        raw_numpyparray[mask_fapar_no_data] = 255
         #
         #
         #
@@ -202,6 +202,5 @@ def makeflaggedenvi():
 #
 #
 if __name__ == '__main__':
-    #pass
     makeflaggedenvi()
     

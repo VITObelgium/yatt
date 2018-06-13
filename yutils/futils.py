@@ -3,7 +3,6 @@
 #
 import os
 import logging
-import itertools
 
 
 
@@ -12,14 +11,12 @@ import itertools
 #
 def sanePath(szabspath):
     """
-    attempt to check whether path is a string representing a meaningful path,
+    attempt to check whether path is representing a meaningful path,
     without automatic joining of current working directory,
     convert it to its no nonsense form
     and drive hardcore pythonians up against the wall
+    knowing that this module will cause far more problems than it possibly could solve. Ha!
     """
-    if not isinstance(szabspath, basestring): 
-        logging.warn("Invalid type or None string: %s has type:%s", repr(szabspath), type(szabspath))
-        return None
     if not os.path.isabs(szabspath):
         logging.warn("Non absolute path: %s", repr(szabspath))
         return None
@@ -180,7 +177,7 @@ def gfFilesInDir(predicate, szabsdir):
     """
     generator yielding the files, for which the predicate is True, from a directory
     """
-    for szfilepath in itertools.ifilter(predicate, gFilesInDir(szabsdir)):
+    for szfilepath in filter(predicate, gFilesInDir(szabsdir)):
         logging.debug("Using file: %s", repr(szfilepath))
         yield szfilepath
 
@@ -206,7 +203,7 @@ def ggfFilesInDirs(predicate, iszabsdirs):
     """
     generator yielding the files, for which the predicate is True, from a directories iterable
     """
-    for szfilepath in itertools.ifilter(predicate, ggFilesInDirs(iszabsdirs)):
+    for szfilepath in filter(predicate, ggFilesInDirs(iszabsdirs)):
         logging.debug("Using file: %s", repr(szfilepath))
         yield szfilepath
 
@@ -239,7 +236,7 @@ def gfDirsInDir(predicate, szabsdir):
     """
     generator yielding the subdirectories, for which the predicate is True, from a directory
     """
-    for szdirpath in itertools.ifilter(predicate, gDirsInDir(szabsdir)):
+    for szdirpath in filter(predicate, gDirsInDir(szabsdir)):
         logging.debug("Using directory: %s", repr(szdirpath))
         yield szdirpath
 
@@ -265,7 +262,7 @@ def ggfDirsInDirs(predicate, iszabsdirs):
     """
     generator yielding the subdirectories, for which the predicate is True, from a directories iterable
     """
-    for szdirpath in itertools.ifilter(predicate, ggDirsInDirs(iszabsdirs)):
+    for szdirpath in filter(predicate, ggDirsInDirs(iszabsdirs)):
         logging.debug("Using directory: %s", repr(szdirpath))
         yield szdirpath
 
