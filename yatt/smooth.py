@@ -1038,6 +1038,101 @@ def _whittaker_second_differences(lmbda, y, w):
     #
     return z
 
+#
+#    Composites
+#
+class CompositeType(object):
+
+    """
+    ids or keys to be used in dicts etc.
+    """
+    MAX = 1 
+    MIN = 2
+    AVG = 3
+
+    def __init__(self, icompositetypeid):
+        """
+        """
+        self.id = icompositetypeid
+
+#
+#
+#
+CompositeType.MAXCOMPOSITE = CompositeType(CompositeType.MAX)
+CompositeType.MINCOMPOSITE = CompositeType(CompositeType.MIN)
+CompositeType.AVGCOMPOSITE = CompositeType(CompositeType.AVG)
+
+#
+#
+#
+def compostitemaximum(numpydatacube): return composite(numpydatacube, CompositeType.MAXCOMPOSITE)
+def compostiteminimum(numpydatacube): return composite(numpydatacube, CompositeType.MINCOMPOSITE)
+def compostiteaverage(numpydatacube): return composite(numpydatacube, CompositeType.AVGCOMPOSITE)
+
+#
+#
+#
+def composite(numpydatacube, compositetype):
+    """
+    minimum, maximum or average composites from the data cube passed in - can be a numpy array of scalars (including nan's) or a numpy array of rasters
+    (preferably use the makedatacube function, and solve it there in case problems/bugs occur)
+    """
+    #
+    #
+    #
+    if not isinstance(compositetype, CompositeType): raise ValueError(" compositetype must be an actual CompositeType instance")
+    #
+    #    reference shape from first data raster
+    #
+    numpydatarastershape = numpy.asarray(numpydatacube[0]).shape
+    #
+    #
+    #
+    if compositetype == CompositeType.MAXCOMPOSITE : maxcompositedataraster = numpy.full(numpydatarastershape, numpy.nan, dtype=float)
+    if compositetype == CompositeType.MINCOMPOSITE : mincompositedataraster = numpy.full(numpydatarastershape, numpy.nan, dtype=float)
+    if compositetype == CompositeType.AVGCOMPOSITE : 
+        sumcompositedataraster = numpy.full(numpydatarastershape, numpy.nan, dtype=float)
+        cntcompositedataraster = numpy.full(numpydatarastershape, 0,         dtype=int)
+    #
+    #
+    #
+    numberofrasters = numpydatacube.shape[0]
+    #
+    #
+    #
+    for iIdx in range(0,numberofrasters):
+        #
+        #
+        #
+        if compositetype == CompositeType.MAXCOMPOSITE : 
+            compositeisnanraster = numpy.isnan(maxcompositedataraster)
+            datanotnanraster     = ~numpy.isnan(numpydatacube[iIdx])
+            bothnotnanraster     = ~compositeisnanraster & datanotnanraster
+            maxcompositedataraster[compositeisnanraster] = numpydatacube[iIdx][compositeisnanraster]
+            maxcompositedataraster[bothnotnanraster] = numpy.where( maxcompositedataraster[bothnotnanraster] < numpydatacube[iIdx][bothnotnanraster], numpydatacube[iIdx][bothnotnanraster], maxcompositedataraster[bothnotnanraster])
+
+        if compositetype == CompositeType.MINCOMPOSITE : 
+            compositeisnanraster = numpy.isnan(mincompositedataraster)
+            datanotnanraster     = ~numpy.isnan(numpydatacube[iIdx])
+            bothnotnanraster     = ~compositeisnanraster & datanotnanraster
+            mincompositedataraster[compositeisnanraster] = numpydatacube[iIdx][compositeisnanraster]
+            mincompositedataraster[bothnotnanraster] = numpy.where( mincompositedataraster[bothnotnanraster] > numpydatacube[iIdx][bothnotnanraster], numpydatacube[iIdx][bothnotnanraster], mincompositedataraster[bothnotnanraster])
+
+        if compositetype == CompositeType.AVGCOMPOSITE :
+            compositeisnanraster = numpy.isnan(sumcompositedataraster)
+            datanotnanraster     = ~numpy.isnan(numpydatacube[iIdx])
+            bothnotnanraster     = ~compositeisnanraster & datanotnanraster
+            sumcompositedataraster[compositeisnanraster] = numpydatacube[iIdx][compositeisnanraster]
+            cntcompositedataraster[datanotnanraster] += 1
+            sumcompositedataraster[bothnotnanraster] += numpydatacube[iIdx][bothnotnanraster]
+
+    if compositetype == CompositeType.MAXCOMPOSITE: return maxcompositedataraster
+    if compositetype == CompositeType.MINCOMPOSITE: return mincompositedataraster
+    if compositetype == CompositeType.AVGCOMPOSITE:
+        sumcompositedataraster[cntcompositedataraster != 0] /= cntcompositedataraster[cntcompositedataraster != 0]
+        return sumcompositedataraster
+
+    raise ValueError("unsupported operation")
 
 
 
