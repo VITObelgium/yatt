@@ -158,7 +158,7 @@ def dorasters(inputdirectory, bmakepng = False, bmakeenvi = False):
     raw_data_numpydatacube            = yatt.smooth.makedatacube(zerasters, minimumdatavalue=tests.testdata.minimumdatavalue, maximumdatavalue=tests.testdata.maximumdatavalue)
     outliers_removed_numpydatacube    = yatt.smooth.flaglocalminima(numpy.copy(raw_data_numpydatacube), maxdip, maxdif, maxgap=maxgap, maxpasses=maxpasses)
     outliers_removed_weighttypescube  = yatt.smooth.makeweighttypescube(outliers_removed_numpydatacube, aboutequalepsilon)
-    outliers_removed_swetsweightscube = yatt.smooth.makesimpleweightscube(outliers_removed_weighttypescube, weightvalues=tests.testdata.defaultswetsweightvalues)
+    outliers_removed_swetsweightscube = yatt.smooth.makesimpleweightscube(outliers_removed_weighttypescube, weightvalues=yatt.smooth.defaultswetsweightvalues)
     outliers_removed_whittakercube    = yatt.smooth.whittaker_second_differences(lmbda, outliers_removed_numpydatacube, outliers_removed_swetsweightscube, minimumdatavalue=tests.testdata.minimumdatavalue, maximumdatavalue=tests.testdata.maximumdatavalue, passes=passes, dokeepmaxima=dokeepmaxima)
     outliers_removed_swetscube        = yatt.smooth.swets(regressionwindow, combinationwindow, outliers_removed_numpydatacube, outliers_removed_swetsweightscube, minimumdatavalue=tests.testdata.minimumdatavalue, maximumdatavalue=tests.testdata.maximumdatavalue)
 

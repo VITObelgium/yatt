@@ -202,7 +202,7 @@ def doprofiles(inputdirectory, bmakepng):
     #
     all_raw_data_datacube         = yatt.smooth.makedatacube(profile_avarage_pixels_fapar_data, minimumdatavalue=tests.testdata.minimumdatavalue, maximumdatavalue=tests.testdata.maximumdatavalue)
     all_raw_data_weighttypescube  = yatt.smooth.makeweighttypescube(all_raw_data_datacube, aboutequalepsilon)
-    all_raw_data_swetsweightscube = yatt.smooth.makesimpleweightscube(all_raw_data_weighttypescube, weightvalues=tests.testdata.defaultswetsweightvalues)
+    all_raw_data_swetsweightscube = yatt.smooth.makesimpleweightscube(all_raw_data_weighttypescube, weightvalues=yatt.smooth.defaultswetsweightvalues)
     #
     #    whittaker on raw data
     #
@@ -220,14 +220,14 @@ def doprofiles(inputdirectory, bmakepng):
     #
     all_raw_data_interpolated_datacube         = yatt.smooth.linearinterpolation(numpy.copy(all_raw_data_datacube))
     all_raw_data_interpolated_weighttypescube  = yatt.smooth.makeweighttypescube(all_raw_data_interpolated_datacube, aboutequalepsilon)
-    all_raw_data_interpolated_swetsweightscube = yatt.smooth.makesimpleweightscube(all_raw_data_interpolated_weighttypescube, weightvalues=tests.testdata.defaultswetsweightvalues)
+    all_raw_data_interpolated_swetsweightscube = yatt.smooth.makesimpleweightscube(all_raw_data_interpolated_weighttypescube, weightvalues=yatt.smooth.defaultswetsweightvalues)
     all_raw_data_interpolated_swetscube        = yatt.smooth.swets(regressionwindow, combinationwindow, all_raw_data_interpolated_datacube, all_raw_data_interpolated_swetsweightscube, minimumdatavalue=tests.testdata.minimumdatavalue, maximumdatavalue=tests.testdata.maximumdatavalue)
     #
     #    remove outliers
     #
     all_outliers_removed_datacube         = yatt.smooth.flaglocalminima(numpy.copy(all_raw_data_datacube), maxdip, maxdif, maxgap=maxgap, maxpasses=extremapasses)
     all_outliers_removed_weighttypescube  = yatt.smooth.makeweighttypescube(all_outliers_removed_datacube, aboutequalepsilon)
-    all_outliers_removed_swetsweightscube = yatt.smooth.makesimpleweightscube(all_outliers_removed_weighttypescube, weightvalues=tests.testdata.defaultswetsweightvalues)
+    all_outliers_removed_swetsweightscube = yatt.smooth.makesimpleweightscube(all_outliers_removed_weighttypescube, weightvalues=yatt.smooth.defaultswetsweightvalues)
     #
     #    whittaker on data without outliers
     #
@@ -245,7 +245,7 @@ def doprofiles(inputdirectory, bmakepng):
     #
     all_outliers_removed_interpolated_datacube         = yatt.smooth.linearinterpolation(numpy.copy(all_outliers_removed_datacube))
     all_outliers_removed_interpolated_weighttypescube  = yatt.smooth.makeweighttypescube(all_outliers_removed_interpolated_datacube, aboutequalepsilon)
-    all_outliers_removed_interpolated_swetsweightscube = yatt.smooth.makesimpleweightscube(all_outliers_removed_interpolated_weighttypescube, weightvalues=tests.testdata.defaultswetsweightvalues)
+    all_outliers_removed_interpolated_swetsweightscube = yatt.smooth.makesimpleweightscube(all_outliers_removed_interpolated_weighttypescube, weightvalues=yatt.smooth.defaultswetsweightvalues)
     all_outliers_removed_interpolated_swetscube        = yatt.smooth.swets(regressionwindow, combinationwindow, all_outliers_removed_interpolated_datacube, all_outliers_removed_interpolated_swetsweightscube, minimumdatavalue=tests.testdata.minimumdatavalue, maximumdatavalue=tests.testdata.maximumdatavalue)
 
 
@@ -255,7 +255,7 @@ def doprofiles(inputdirectory, bmakepng):
     #
     perfect_raw_data_datacube         = yatt.smooth.makedatacube(profile_avarage_pixels_fapar_perfect_data, minimumdatavalue=tests.testdata.minimumdatavalue, maximumdatavalue=tests.testdata.maximumdatavalue)
     perfect_raw_data_weighttypescube  = yatt.smooth.makeweighttypescube(perfect_raw_data_datacube, aboutequalepsilon)
-    perfect_raw_data_swetsweightscube = yatt.smooth.makesimpleweightscube(perfect_raw_data_weighttypescube, weightvalues=tests.testdata.defaultswetsweightvalues)
+    perfect_raw_data_swetsweightscube = yatt.smooth.makesimpleweightscube(perfect_raw_data_weighttypescube, weightvalues=yatt.smooth.defaultswetsweightvalues)
     #
     #    whittaker on perfect data
     #
@@ -273,14 +273,14 @@ def doprofiles(inputdirectory, bmakepng):
     #
     perfect_raw_data_interpolated_datacube         = yatt.smooth.linearinterpolation(numpy.copy(perfect_raw_data_datacube))
     perfect_raw_data_interpolated_weighttypescube  = yatt.smooth.makeweighttypescube(perfect_raw_data_interpolated_datacube, aboutequalepsilon)
-    perfect_raw_data_interpolated_swetsweightscube = yatt.smooth.makesimpleweightscube(perfect_raw_data_interpolated_weighttypescube, weightvalues=tests.testdata.defaultswetsweightvalues)
+    perfect_raw_data_interpolated_swetsweightscube = yatt.smooth.makesimpleweightscube(perfect_raw_data_interpolated_weighttypescube, weightvalues=yatt.smooth.defaultswetsweightvalues)
     perfect_raw_data_interpolated_swetscube        = yatt.smooth.swets(regressionwindow, combinationwindow, perfect_raw_data_interpolated_datacube, perfect_raw_data_interpolated_swetsweightscube, minimumdatavalue=tests.testdata.minimumdatavalue, maximumdatavalue=tests.testdata.maximumdatavalue)
     #
     #    remove outliers
     #
     perfect_outliers_removed_datacube = yatt.smooth.flaglocalminima(numpy.copy(perfect_raw_data_datacube), maxdip, maxdif, maxgap=maxgap, maxpasses=extremapasses)
     perfect_outliers_removed_weighttypescube  = yatt.smooth.makeweighttypescube(perfect_outliers_removed_datacube, aboutequalepsilon)
-    perfect_outliers_removed_swetsweightscube = yatt.smooth.makesimpleweightscube(perfect_outliers_removed_weighttypescube, weightvalues=tests.testdata.defaultswetsweightvalues)
+    perfect_outliers_removed_swetsweightscube = yatt.smooth.makesimpleweightscube(perfect_outliers_removed_weighttypescube, weightvalues=yatt.smooth.defaultswetsweightvalues)
     #
     #    whittaker on perfect data without outliers
     #
@@ -298,7 +298,7 @@ def doprofiles(inputdirectory, bmakepng):
     #
     perfect_outliers_removed_interpolated_datacube         = yatt.smooth.linearinterpolation(numpy.copy(perfect_outliers_removed_datacube))
     perfect_outliers_removed_interpolated_weighttypescube  = yatt.smooth.makeweighttypescube(perfect_outliers_removed_interpolated_datacube, aboutequalepsilon)
-    perfect_outliers_removed_interpolated_swetsweightscube = yatt.smooth.makesimpleweightscube(perfect_outliers_removed_interpolated_weighttypescube, weightvalues=tests.testdata.defaultswetsweightvalues)
+    perfect_outliers_removed_interpolated_swetsweightscube = yatt.smooth.makesimpleweightscube(perfect_outliers_removed_interpolated_weighttypescube, weightvalues=yatt.smooth.defaultswetsweightvalues)
     perfect_outliers_removed_interpolated_swetscube        = yatt.smooth.swets(regressionwindow, combinationwindow, perfect_outliers_removed_interpolated_datacube, perfect_outliers_removed_interpolated_swetsweightscube, minimumdatavalue=tests.testdata.minimumdatavalue, maximumdatavalue=tests.testdata.maximumdatavalue)
 
 

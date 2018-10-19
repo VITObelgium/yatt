@@ -287,13 +287,13 @@ def makegraphs(inputdirectory, bmakepng):
     perfect_fapar_good_field_raw_data_unweighted_swets_datacube = yatt.smooth.swets(regressionwindow, combinationwindow, perfect_fapar_good_field_raw_data_datacube, numpyweightscube= None, minimumdatavalue=mindatavalue, maximumdatavalue=maxdatavalue)
 
 
-    all_fapar_all_field_raw_data_weightstypecube      = yatt.smooth.makeweighttypescube(all_fapar_all_field_raw_data_datacube,     aboutequalepsilon)
-    all_fapar_good_field_raw_data_weightstypecube     = yatt.smooth.makeweighttypescube(all_fapar_good_field_raw_data_datacube,    aboutequalepsilon)
+    all_fapar_all_field_raw_data_weightstypecube      = yatt.smooth.makeweighttypescube(all_fapar_all_field_raw_data_datacube,      aboutequalepsilon)
+    all_fapar_good_field_raw_data_weightstypecube     = yatt.smooth.makeweighttypescube(all_fapar_good_field_raw_data_datacube,     aboutequalepsilon)
     perfect_fapar_good_field_raw_data_weightstypecube = yatt.smooth.makeweighttypescube(perfect_fapar_good_field_raw_data_datacube, aboutequalepsilon)
 
-    all_fapar_all_field_raw_data_stdswetsweightscube      = yatt.smooth.makesimpleweightscube(all_fapar_all_field_raw_data_weightstypecube,      weightvalues=tests.testdata.defaultswetsweightvalues)
-    all_fapar_good_field_raw_data_stdswetsweightscube     = yatt.smooth.makesimpleweightscube(all_fapar_good_field_raw_data_weightstypecube,     weightvalues=tests.testdata.defaultswetsweightvalues)
-    perfect_fapar_good_field_raw_data_stdswetsweightscube = yatt.smooth.makesimpleweightscube(perfect_fapar_good_field_raw_data_weightstypecube, weightvalues=tests.testdata.defaultswetsweightvalues)
+    all_fapar_all_field_raw_data_stdswetsweightscube      = yatt.smooth.makesimpleweightscube(all_fapar_all_field_raw_data_weightstypecube,      weightvalues=yatt.smooth.defaultswetsweightvalues)
+    all_fapar_good_field_raw_data_stdswetsweightscube     = yatt.smooth.makesimpleweightscube(all_fapar_good_field_raw_data_weightstypecube,     weightvalues=yatt.smooth.defaultswetsweightvalues)
+    perfect_fapar_good_field_raw_data_stdswetsweightscube = yatt.smooth.makesimpleweightscube(perfect_fapar_good_field_raw_data_weightstypecube, weightvalues=yatt.smooth.defaultswetsweightvalues)
 
     all_fapar_all_field_raw_data_stdswetsweights_whittaker_datacube      = yatt.smooth.whittaker_second_differences(lmbda, all_fapar_all_field_raw_data_datacube,      all_fapar_all_field_raw_data_stdswetsweightscube,     minimumdatavalue=mindatavalue, maximumdatavalue=maxdatavalue, passes=passes, dokeepmaxima=dokeepmaxima)
     all_fapar_good_field_raw_data_stdswetsweights_whittaker_datacube     = yatt.smooth.whittaker_second_differences(lmbda, all_fapar_good_field_raw_data_datacube,     all_fapar_good_field_raw_data_stdswetsweightscube,    minimumdatavalue=mindatavalue, maximumdatavalue=maxdatavalue, passes=passes, dokeepmaxima=dokeepmaxima)
@@ -336,9 +336,9 @@ def makegraphs(inputdirectory, bmakepng):
     all_fapar_good_field_nooutliers_data_weightstypecube     = yatt.smooth.makeweighttypescube(all_fapar_good_field_nooutliers_data_datacube,     aboutequalepsilon)
     perfect_fapar_good_field_nooutliers_data_weightstypecube = yatt.smooth.makeweighttypescube(perfect_fapar_good_field_nooutliers_data_datacube, aboutequalepsilon)
 
-    all_fapar_all_field_nooutliers_data_stdswetsweightscube      = yatt.smooth.makesimpleweightscube(all_fapar_all_field_nooutliers_data_weightstypecube,      weightvalues=tests.testdata.defaultswetsweightvalues)
-    all_fapar_good_field_nooutliers_data_stdswetsweightscube     = yatt.smooth.makesimpleweightscube(all_fapar_good_field_nooutliers_data_weightstypecube,     weightvalues=tests.testdata.defaultswetsweightvalues)
-    perfect_fapar_good_field_nooutliers_data_stdswetsweightscube = yatt.smooth.makesimpleweightscube(perfect_fapar_good_field_nooutliers_data_weightstypecube, weightvalues=tests.testdata.defaultswetsweightvalues)
+    all_fapar_all_field_nooutliers_data_stdswetsweightscube      = yatt.smooth.makesimpleweightscube(all_fapar_all_field_nooutliers_data_weightstypecube,      weightvalues=yatt.smooth.defaultswetsweightvalues)
+    all_fapar_good_field_nooutliers_data_stdswetsweightscube     = yatt.smooth.makesimpleweightscube(all_fapar_good_field_nooutliers_data_weightstypecube,     weightvalues=yatt.smooth.defaultswetsweightvalues)
+    perfect_fapar_good_field_nooutliers_data_stdswetsweightscube = yatt.smooth.makesimpleweightscube(perfect_fapar_good_field_nooutliers_data_weightstypecube, weightvalues=yatt.smooth.defaultswetsweightvalues)
 
     all_fapar_all_field_nooutliers_data_stdswetsweights_whittaker_datacube      = yatt.smooth.whittaker_second_differences(lmbda, all_fapar_all_field_nooutliers_data_datacube,      all_fapar_all_field_nooutliers_data_stdswetsweightscube,     minimumdatavalue=mindatavalue, maximumdatavalue=maxdatavalue, passes=passes, dokeepmaxima=dokeepmaxima)
     all_fapar_good_field_nooutliers_data_stdswetsweights_whittaker_datacube     = yatt.smooth.whittaker_second_differences(lmbda, all_fapar_good_field_nooutliers_data_datacube,     all_fapar_good_field_nooutliers_data_stdswetsweightscube,    minimumdatavalue=mindatavalue, maximumdatavalue=maxdatavalue, passes=passes, dokeepmaxima=dokeepmaxima)

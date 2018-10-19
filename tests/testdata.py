@@ -77,17 +77,6 @@ faparcolormap = matplotlib.colors.LinearSegmentedColormap('fAPAR', _faparcolordi
 faparnorm     = matplotlib.pyplot.Normalize(0, 255)
 
 #
-#
-#
-defaultswetsweightvalues = yatt.smooth.WeightValues(
-    maximum    =  1.5,
-    minimum    =  0.005,
-    posslope   =  0.5,
-    negslope   =  0.5,
-    aboutequal =  1.0,
-    default    =  0.0)
-
-#
 #    helper for reverse engineering of the data
 #
 def makeflaggedenvi():
