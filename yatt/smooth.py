@@ -293,21 +293,20 @@ def _flaglocalextrema(numpydatacube, maxdipvalueornumpycube, maxdifvalueornumpyc
                     isextremum = numpy.copy(comparabletoboth)
                     isextremum[isextremum] &= maskextrema(numpydatacube[iIdx][isextremum], prevrastervalues[isextremum], (prevrasterdistance * numpymaxdipcube[iIdx])[isextremum])
                     isextremum[isextremum] &= maskextrema(numpydatacube[iIdx][isextremum], nextrastervalues[isextremum], (nextrasterdistance * numpymaxdipcube[iIdx])[isextremum])
-                
+
                 if numpymaxdifcube is not None: 
                     isdip = numpy.full_like(comparabletoboth, False, dtype=bool)
                     isdip[comparabletoboth]  = maskextrema(numpydatacube[iIdx][comparabletoboth], prevrastervalues[comparabletoboth], (prevrasterdistance *  numpymaxdifcube[iIdx])[comparabletoboth])
                     isdip[comparabletoboth] |= maskextrema(numpydatacube[iIdx][comparabletoboth], nextrastervalues[comparabletoboth], (nextrasterdistance *  numpymaxdifcube[iIdx])[comparabletoboth])
-            
+
                 if isextremum is not None : numpydatacube[iIdx][isextremum] = numpy.nan            
                 if isdip      is not None : numpydatacube[iIdx][isdip]      = numpy.nan            
-        
-        
+
         remainingnumberofvalues = numpy.sum(~numpy.isnan(numpydatacube))
         removednumberofvalues   = previousnumberofvalues - remainingnumberofvalues
         print ("flaglocalextrema pass : %s removed %s values. %s values remaining. %s values removed in total" % (iteration+1, removednumberofvalues, remainingnumberofvalues, initialnumberofvalues - remainingnumberofvalues))
         previousnumberofvalues = remainingnumberofvalues
-        if removednumberofvalues <= 0:
+        if removednumberofvalues <= 0 and 1 < maxpasses:
             print ("flaglocalextrema pass : %s - exits" % (iteration+1))
             break
 
@@ -351,7 +350,7 @@ def linearinterpolation(numpydatacube):
         nextrasterindiceschoicelist = range(iIdx+1,numberofrasters)
         nextrasterindicescondlist   = [~numpy.isnan(numpydatacube[i])      for i in nextrasterindiceschoicelist]
         nextrasterindices           = numpy.select(nextrasterindicescondlist, nextrasterindiceschoicelist, default=defaultindexraster)
-        
+
         nextrastervalueschoicelist  = [numpydatacube[i]                    for i in nextrasterindiceschoicelist]
         nextrastervaluescondlist    = [nextrasterindices == i              for i in nextrasterindiceschoicelist]
         nextrastervalues            = numpy.select(nextrastervaluescondlist, nextrastervalueschoicelist, default=defaultvalueraster)
@@ -367,6 +366,68 @@ def linearinterpolation(numpydatacube):
     #
     #
     return numpydatacube
+
+#
+#
+#
+def movingaverage(numpydatacube, windowsize):
+    """
+    simple moving average using a sliding window.
+    :param numpydatacube - can be a numpy array of scalars (including nan's) or a numpy array of rasters (preferably use the makedatacube function, and solve it there in case problems/bugs occur)
+    :param windowsize - width of the sliding window, at least 2, preferably odd. In case windowsize is even, the left side will be 1 index greater than the right side.
+    """
+    #
+    #    left and right distances for point in window
+    #    odd  windows: 3,5,7,... => left == right = 1,2,3
+    #    even windows: 2,4,6,... => left = 1,2,3 right = 0,1,2
+    #
+    if((int(windowsize)  != windowsize)  or (windowsize  < 2)): raise ValueError("windowsize must be an int >= 2")
+    left_windowsize  = int(windowsize / 2) ; right_windowsize = left_windowsize
+    if ( windowsize == 2 * right_windowsize ) : right_windowsize -= 1
+    #
+    #
+    #
+    numberofrasters = numpydatacube.shape[0]
+    #
+    #
+    #
+    numpynotnancube = ~numpy.isnan(numpydatacube)
+    numpyzeroedcube = numpy.copy(numpydatacube) ; numpyzeroedcube[~numpynotnancube] = 0
+    numpymovavgcube = numpy.full_like(numpydatacube, numpy.nan, dtype=float)
+    numpymovcntcube = numpy.full_like(numpydatacube, 0,         dtype=int)
+    #
+    #
+    #
+    numpymovavgcube[0] = numpy.sum(numpyzeroedcube[0 : right_windowsize + 1], axis=0)
+    numpymovcntcube[0] = numpy.sum(numpynotnancube[0 : right_windowsize + 1], axis=0)
+    #
+    #
+    #
+    for iIdx in range(1, numberofrasters):
+        #
+        #
+        #
+        toAddIdx = iIdx + right_windowsize
+        toRemIdx = iIdx - left_windowsize - 1
+
+        numpymovavgcube[iIdx] = numpymovavgcube[iIdx-1]
+        numpymovcntcube[iIdx] = numpymovcntcube[iIdx-1]
+
+        if toAddIdx < numberofrasters: 
+            numpymovavgcube[iIdx] = numpymovavgcube[iIdx] + numpyzeroedcube[toAddIdx]
+            numpymovcntcube[iIdx] = numpymovcntcube[iIdx] + numpynotnancube[toAddIdx]
+        if 0 <= toRemIdx :  
+            numpymovavgcube[iIdx] = numpymovavgcube[iIdx] - numpyzeroedcube[toRemIdx]
+            numpymovcntcube[iIdx] = numpymovcntcube[iIdx] - numpynotnancube[toRemIdx]
+    #
+    #
+    #
+    numpymovavgcube[numpymovcntcube != 0] /= numpymovcntcube[numpymovcntcube != 0]
+    numpymovavgcube[numpymovcntcube == 0] = numpy.nan
+    #
+    #
+    #
+    return numpymovavgcube
 
 #
 #

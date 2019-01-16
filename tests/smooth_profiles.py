@@ -223,6 +223,13 @@ def doprofiles(inputdirectory, bmakepng):
     all_raw_data_interpolated_swetsweightscube = yatt.smooth.makesimpleweightscube(all_raw_data_interpolated_weighttypescube, weightvalues=yatt.smooth.defaultswetsweightvalues)
     all_raw_data_interpolated_swetscube        = yatt.smooth.swets(regressionwindow, combinationwindow, all_raw_data_interpolated_datacube, all_raw_data_interpolated_swetsweightscube, minimumdatavalue=tests.testdata.minimumdatavalue, maximumdatavalue=tests.testdata.maximumdatavalue)
     #
+    #    movingaverage on raw data
+    #
+    all_raw_data_movingaverage       = yatt.smooth.movingaverage(all_raw_data_datacube, 51)
+    all_raw_data_linearinterpolation = yatt.smooth.linearinterpolation(numpy.copy(all_raw_data_datacube))
+    all_raw_data_movingaverage_of_linearinterpolation = yatt.smooth.movingaverage(all_raw_data_linearinterpolation, 51)
+
+    #
     #    remove outliers
     #
     all_outliers_removed_datacube         = yatt.smooth.flaglocalminima(numpy.copy(all_raw_data_datacube), maxdip, maxdif, maxgap=maxgap, maxpasses=extremapasses)
@@ -247,6 +254,12 @@ def doprofiles(inputdirectory, bmakepng):
     all_outliers_removed_interpolated_weighttypescube  = yatt.smooth.makeweighttypescube(all_outliers_removed_interpolated_datacube, aboutequalepsilon)
     all_outliers_removed_interpolated_swetsweightscube = yatt.smooth.makesimpleweightscube(all_outliers_removed_interpolated_weighttypescube, weightvalues=yatt.smooth.defaultswetsweightvalues)
     all_outliers_removed_interpolated_swetscube        = yatt.smooth.swets(regressionwindow, combinationwindow, all_outliers_removed_interpolated_datacube, all_outliers_removed_interpolated_swetsweightscube, minimumdatavalue=tests.testdata.minimumdatavalue, maximumdatavalue=tests.testdata.maximumdatavalue)
+    #
+    #    movingaverage on data without outliers
+    #
+    all_outliers_removed_movingaverage       = yatt.smooth.movingaverage(all_outliers_removed_datacube, 51)
+    all_outliers_removed_linearinterpolation = yatt.smooth.linearinterpolation(numpy.copy(all_outliers_removed_datacube))
+    all_outliers_removed_movingaverage_of_linearinterpolation = yatt.smooth.movingaverage(all_outliers_removed_linearinterpolation, 51)
 
 
 
@@ -276,6 +289,13 @@ def doprofiles(inputdirectory, bmakepng):
     perfect_raw_data_interpolated_swetsweightscube = yatt.smooth.makesimpleweightscube(perfect_raw_data_interpolated_weighttypescube, weightvalues=yatt.smooth.defaultswetsweightvalues)
     perfect_raw_data_interpolated_swetscube        = yatt.smooth.swets(regressionwindow, combinationwindow, perfect_raw_data_interpolated_datacube, perfect_raw_data_interpolated_swetsweightscube, minimumdatavalue=tests.testdata.minimumdatavalue, maximumdatavalue=tests.testdata.maximumdatavalue)
     #
+    #    movingaverage on raw perfect data
+    #
+    perfect_raw_data_movingaverage       = yatt.smooth.movingaverage(perfect_raw_data_datacube, 51)
+    perfect_raw_data_linearinterpolation = yatt.smooth.linearinterpolation(numpy.copy(perfect_raw_data_datacube))
+    perfect_raw_data_movingaverage_of_linearinterpolation = yatt.smooth.movingaverage(perfect_raw_data_linearinterpolation, 51)
+
+    #
     #    remove outliers
     #
     perfect_outliers_removed_datacube = yatt.smooth.flaglocalminima(numpy.copy(perfect_raw_data_datacube), maxdip, maxdif, maxgap=maxgap, maxpasses=extremapasses)
@@ -300,6 +320,12 @@ def doprofiles(inputdirectory, bmakepng):
     perfect_outliers_removed_interpolated_weighttypescube  = yatt.smooth.makeweighttypescube(perfect_outliers_removed_interpolated_datacube, aboutequalepsilon)
     perfect_outliers_removed_interpolated_swetsweightscube = yatt.smooth.makesimpleweightscube(perfect_outliers_removed_interpolated_weighttypescube, weightvalues=yatt.smooth.defaultswetsweightvalues)
     perfect_outliers_removed_interpolated_swetscube        = yatt.smooth.swets(regressionwindow, combinationwindow, perfect_outliers_removed_interpolated_datacube, perfect_outliers_removed_interpolated_swetsweightscube, minimumdatavalue=tests.testdata.minimumdatavalue, maximumdatavalue=tests.testdata.maximumdatavalue)
+    #
+    #    movingaverage  on perfect data without outliers
+    #
+    perfect_outliers_removed_movingaverage       = yatt.smooth.movingaverage(perfect_outliers_removed_datacube, 51)
+    perfect_outliers_removed_linearinterpolation = yatt.smooth.linearinterpolation(numpy.copy(perfect_outliers_removed_datacube))
+    perfect_outliers_removed_movingaverage_of_linearinterpolation = yatt.smooth.movingaverage(perfect_outliers_removed_linearinterpolation, 51)
 
 
 
@@ -307,7 +333,7 @@ def doprofiles(inputdirectory, bmakepng):
     #
     #
     rows = 2
-    cols = 2
+    cols = 3
     subplots = numpy.empty( (rows,cols), dtype=object )
 
     figure = matplotlib.pyplot.figure(figsize=(16,6))
@@ -353,13 +379,32 @@ def doprofiles(inputdirectory, bmakepng):
     subplots[row, col].plot_date(matplotlib.dates.datestr2num (profile_zedates), perfect_outliers_removed_datacube,              'go' )  
     subplots[row, col].set_title("swets - 'perfect' observations")
 
+    row = 0; col = 2
+    line, = subplots[row, col].plot_date(matplotlib.dates.datestr2num (profile_zedates), all_raw_data_movingaverage,                                'Red'    ); line.set_label('mov avg')    
+    line, = subplots[row, col].plot_date(matplotlib.dates.datestr2num (profile_zedates), all_raw_data_movingaverage_of_linearinterpolation,         'Magenta'); line.set_label('interp-mov avg')     
+    line, = subplots[row, col].plot_date(matplotlib.dates.datestr2num (profile_zedates), all_outliers_removed_movingaverage,                        'Green'  ); line.set_label('no outliers mov avg')     
+    line, = subplots[row, col].plot_date(matplotlib.dates.datestr2num (profile_zedates), all_outliers_removed_movingaverage_of_linearinterpolation , 'Blue'  ); line.set_label('no outliers interp-mov avg')   
+    subplots[row, col].plot_date(matplotlib.dates.datestr2num (profile_zedates), all_raw_data_datacube,         'ro' )
+    subplots[row, col].plot_date(matplotlib.dates.datestr2num (profile_zedates), all_outliers_removed_datacube, 'go' )  
+    subplots[row, col].set_title("moving average - all observations")
+    subplots[row, col].legend()
+
+    row = 1; col = 2
+    subplots[row, col].plot_date(matplotlib.dates.datestr2num (profile_zedates), perfect_raw_data_movingaverage,                                'Red' )  
+    subplots[row, col].plot_date(matplotlib.dates.datestr2num (profile_zedates), perfect_raw_data_movingaverage_of_linearinterpolation,         'Magenta' )  
+    subplots[row, col].plot_date(matplotlib.dates.datestr2num (profile_zedates), perfect_outliers_removed_movingaverage,                        'Green' )  
+    subplots[row, col].plot_date(matplotlib.dates.datestr2num (profile_zedates), perfect_outliers_removed_movingaverage_of_linearinterpolation, 'Blue' )  
+    subplots[row, col].plot_date(matplotlib.dates.datestr2num (profile_zedates), perfect_raw_data_datacube,         'ro' )  
+    subplots[row, col].plot_date(matplotlib.dates.datestr2num (profile_zedates), perfect_outliers_removed_datacube, 'go' )  
+    subplots[row, col].set_title("moving average - 'perfect' observations")
+
     for irow in range(rows):
         for icol in range(cols):
             subplots[irow, icol].xaxis.set_major_formatter(matplotlib.dates.DateFormatter('%d/%m'))
             subplots[irow, icol].set_ylim(-5, 205)
             for tick in subplots[irow, icol].get_xticklabels(): tick.set_rotation(45)
 
-    matplotlib.pyplot.subplots_adjust(wspace=0.1, hspace=0.4)
+    matplotlib.pyplot.subplots_adjust(left = 0.02, right = 0.98, wspace=0.1, hspace=0.4)
     matplotlib.pyplot.suptitle("whittaker vs swets - all observations vs 'good' observations" )
 
     if bmakepng:
