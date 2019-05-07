@@ -9,7 +9,7 @@ import logging
 #
 #
 #
-def sanePath(szabspath, verbose = True):
+def sanePath(szabspath, verbose = False):
     """
     attempt to check whether path is representing a meaningful path,
     without automatic joining of current working directory,
@@ -27,7 +27,7 @@ def sanePath(szabspath, verbose = True):
 #
 #
 #
-def saneExistingPath(szabspath, verbose = True):
+def saneExistingPath(szabspath, verbose = False):
     """
     attempt to check whether path is a string representing a meaningful existing path,
     and convert it to its no nonsense form
@@ -45,7 +45,7 @@ def saneExistingPath(szabspath, verbose = True):
 #
 #
 #
-def saneExistingDirectory(szabspath, verbose = True):
+def saneExistingDirectory(szabspath, verbose = False):
     """
     attempt to check whether path is a string representing a meaningful existing directory,
     and convert it to its no nonsense form
@@ -63,7 +63,7 @@ def saneExistingDirectory(szabspath, verbose = True):
 #
 #
 #
-def saneExistingFile(szabspath, verbose = True):
+def saneExistingFile(szabspath, verbose = False):
     """
     attempt to check whether path is a string representing a meaningful existing file,
     and convert it to its no nonsense form
@@ -81,7 +81,7 @@ def saneExistingFile(szabspath, verbose = True):
 #
 #
 #
-def saneFile(szabspath, bmayexist = False, verbose = True):
+def saneFile(szabspath, bmayexist = False, verbose = False):
     """
     check whether path is a string representing a meaningful non-existing file,
     check whether the directory it should live in exists
@@ -110,7 +110,7 @@ def saneFile(szabspath, bmayexist = False, verbose = True):
 #
 #
 #
-def directoryFromExistingFile(szabspath, verbose = True):
+def directoryFromExistingFile(szabspath, verbose = False):
     """
     """
     szsanepath = saneExistingFile(szabspath, verbose=verbose)
@@ -124,7 +124,7 @@ def directoryFromExistingFile(szabspath, verbose = True):
 #
 #
 #
-def directoryFromFile(szabspath, verbose = True):
+def directoryFromFile(szabspath, verbose = False):
     """
     """
     szsanepath = saneFile(szabspath, bmayexist=True, verbose=verbose)
@@ -138,7 +138,7 @@ def directoryFromFile(szabspath, verbose = True):
 #
 #
 #
-def parentFromExistingDirectory(szabspath, verbose = True):
+def parentFromExistingDirectory(szabspath, verbose = False):
     """
     """
     szsanepath = saneExistingDirectory(szabspath, verbose=verbose)
@@ -155,7 +155,7 @@ def parentFromExistingDirectory(szabspath, verbose = True):
 # 
 #
 #
-def gFilesInDir(szabsdir, verbose = True):
+def gFilesInDir(szabsdir, verbose = False):
     """
     generator yielding the files in a directory
     """
@@ -176,7 +176,7 @@ def gFilesInDir(szabsdir, verbose = True):
 # 
 #
 #
-def gfFilesInDir(predicate, szabsdir, verbose = True):
+def gfFilesInDir(predicate, szabsdir, verbose = False):
     """
     generator yielding the files, for which the predicate is True, from a directory
     """
@@ -187,7 +187,7 @@ def gfFilesInDir(predicate, szabsdir, verbose = True):
 #
 #
 #
-def ggFilesInDirs(itrszabsdirs, verbose = True):
+def ggFilesInDirs(itrszabsdirs, verbose = False):
     """
     generator yielding the files from a directories iterable. beware: nothing prevents lstszabsdirs to contain duplicates.
     """
@@ -202,7 +202,7 @@ def ggFilesInDirs(itrszabsdirs, verbose = True):
 # 
 #
 #
-def ggfFilesInDirs(predicate, itrszabsdirs, verbose = True):
+def ggfFilesInDirs(predicate, itrszabsdirs, verbose = False):
     """
     generator yielding the files, for which the predicate is True, from a directories iterable
     """
@@ -213,7 +213,7 @@ def ggfFilesInDirs(predicate, itrszabsdirs, verbose = True):
 # 
 #
 #
-def gDirsInDir(szabsdir, verbose = True):
+def gDirsInDir(szabsdir, verbose = False):
     """
     generator yielding the subdirectories in a directory
     """
@@ -230,12 +230,11 @@ def gDirsInDir(szabsdir, verbose = True):
                 yield saneexistingpath
             else:
                 if verbose: logging.debug("Ignoring non-directory path: %s", repr(saneexistingpath))
-                
 
-# 
 #
 #
-def gfDirsInDir(predicate, szabsdir, verbose = True):
+#
+def gfDirsInDir(predicate, szabsdir, verbose = False):
     """
     generator yielding the subdirectories, for which the predicate is True, from a directory
     """
@@ -246,7 +245,7 @@ def gfDirsInDir(predicate, szabsdir, verbose = True):
 #
 #
 #
-def ggDirsInDirs(itrszabsdirs, verbose = True):
+def ggDirsInDirs(itrszabsdirs, verbose = False):
     """
     generator yielding the subdirectories from a directories iterable
     """
@@ -261,7 +260,7 @@ def ggDirsInDirs(itrszabsdirs, verbose = True):
 # 
 #
 #
-def ggfDirsInDirs(predicate, itrszabsdirs, verbose = True):
+def ggfDirsInDirs(predicate, itrszabsdirs, verbose = False):
     """
     generator yielding the subdirectories, for which the predicate is True, from a directories iterable
     """

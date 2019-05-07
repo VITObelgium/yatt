@@ -317,13 +317,26 @@ def g_yyyymmdd_in_yyyymm(yyyymm):
 #
 #
 #
+def g_yyyymmdd_in_yyyy(yyyy):
+    """
+    generate all yyyymmdd day strings for yyyy year string or int
+    """
+    iyear = int(yyyy)
+    if iyear < 1950 or iyear > 2049 : raise ValueError
+    for yyyymm in g_yyyymm_in_yyyy(yyyy):
+        for yyyymmdd in g_yyyymmdd_in_yyyymm(yyyymm):
+            yield yyyymmdd
+
+#
+#
+#
 def g_yyyymmdd_interval(yyyymmddfirst, yyyymmddlast):
     """
     generate all yyyymmdd day strings from yyyymmddfirst till yyyymmddlast - INCLUDING the first and last bounds
     """
     date_yyyymmddfirst = date_of_yyyymmdd(yyyymmddfirst)
     date_yyyymmddlast  = date_of_yyyymmdd(yyyymmddlast)
-    
+
     isize = 1 + abs( (date_yyyymmddlast - date_yyyymmddfirst).days )
 
     step_days = 1 if date_yyyymmddfirst < date_yyyymmddlast else -1

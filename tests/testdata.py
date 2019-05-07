@@ -48,6 +48,60 @@ scene_thin_cirrus_value              = 10
 scene_snow_value                     = 11
 scene_max_value                      = scene_snow_value
 
+scene_values = [
+    scene_no_data_value,
+    scene_saturated_or_defective_value,
+    scene_dark_area_pixels_value,
+    scene_cloud_shadows_value,
+    scene_vegetation_value,
+    scene_bare_soil_value,
+    scene_water_value,
+    scene_cloud_low_probability_value,
+    scene_cloud_medium_probability_value,
+    scene_cloud_high_probability_value,
+    scene_thin_cirrus_value,
+    scene_snow_value,
+    ]
+
+#
+#    colors from cropsar inspector
+#
+fapar_rgb_int = [(168,  80,   0),
+                 (189, 124,   0),
+                 (211, 167,   0),
+                 (233, 211,   0),
+                 (255, 255,   0),
+                 (200, 222,   0),
+                 (145, 189,   0),
+                 ( 91, 157,   0),
+                 ( 36, 124,   0),
+                 ( 51, 102,   0),
+                 (210, 210,  210)]
+#                 (  0,   0,   0)]
+
+fapar_rgb  = [(r/255., g/255., b/255.) for (r, g, b) in fapar_rgb_int]
+fapar_cmap = matplotlib.colors.ListedColormap(fapar_rgb)
+#fapar_norm = matplotlib.colors.BoundaryNorm( [b/200. for b in [0, 20, 40, 60, 80, 100, 120, 140, 160, 180, 200, 255]], fapar_cmap.N)
+fapar_norm = matplotlib.colors.BoundaryNorm( [b - 0.5 for b in [0, 20, 40, 60, 80, 100, 120, 140, 160, 180, 200, 255]], fapar_cmap.N)
+
+scene_rgb_int = [(scene_no_data_value,             (  0,   0,   0)),
+          (scene_saturated_or_defective_value,     (255,   0,   0)),
+          (scene_dark_area_pixels_value,           ( 51,  51,  51)),
+          (scene_cloud_shadows_value,              (102,  51,   0)),
+          (scene_vegetation_value,                 (  0, 255,   0)),
+          (scene_bare_soil_value,                  (255, 255,   0)),
+          (scene_water_value,                      (  0,   0, 255)),
+          (scene_cloud_low_probability_value,      (128, 128, 128)),
+          (scene_cloud_medium_probability_value,   (200, 200, 200)),
+          (scene_cloud_high_probability_value,     (255, 255, 255)),
+          (scene_thin_cirrus_value,                (102, 204, 255)),
+          (scene_snow_value,                       (255, 153, 255)),
+          (255,                                    (253, 106,   2))] # 'Tiger Orange'
+
+scene_rgb  = [(s, (r/255., g/255., b/255.)) for (s, (r, g, b))     in scene_rgb_int]
+scene_cmap = matplotlib.colors.ListedColormap([rgb for (s, rgb)    in scene_rgb])
+scene_norm = matplotlib.colors.BoundaryNorm([center-0.5 for center in range(len(scene_rgb))]+[255], scene_cmap.N)
+
 #
 #    misc
 #
@@ -58,21 +112,21 @@ _faparcolordict = {
               (150/255.0,    0.0/255.0,   0.0/255.0),
               (201/255.0,    0.0/255.0, 210.0/255.0),
               (255/255.0,  210.0/255.0, 210.0/255.0)],
-       
+
     'green': [(  0/255.0,  100.0/255.0, 100.0/255.0),
               ( 50/255.0,  255.0/255.0, 255.0/255.0),
               (100/255.0,  255.0/255.0, 255.0/255.0),
               (150/255.0,  255.0/255.0, 255.0/255.0),
               (201/255.0,  100.0/255.0, 210.0/255.0),
               (255/255.0,  210.0/255.0, 210.0/255.0)],
-       
+
     'blue':  [(  0/255.0,    0.0/255.0,   0.0/255.0),
               ( 50/255.0,  100.0/255.0, 100.0/255.0),
               (100/255.0,  255.0/255.0, 255.0/255.0),
               (150/255.0,    0.0/255.0,   0.0/255.0),
               (201/255.0,   50.0/255.0,  210.0/255.0),
               (255/255.0,  210.0/255.0,  210.0/255.0)]}
- 
+
 faparcolormap = matplotlib.colors.LinearSegmentedColormap('fAPAR', _faparcolordict, N=256)
 faparnorm     = matplotlib.pyplot.Normalize(0, 255)
 
@@ -90,14 +144,14 @@ def makeflaggedenvi():
 
     #
     #
-    #    
+    #
     for date_yyyymmdd in yutils.dutils.g_yyyymmdd_interval(yyyymmddfirst, yyyymmddlast):
 
         ptFAPARpattern = makefilenamepattern(date_yyyymmdd, "FAPAR_10M")
         ptCLOUDpattern = makefilenamepattern(date_yyyymmdd, "CLOUDMASK_10M")
         ptSHADWpattern = makefilenamepattern(date_yyyymmdd, "SHADOWMASK_10M")
         ptSCENEpattern = makefilenamepattern(date_yyyymmdd, "SCENECLASSIFICATION_10M")
-        
+
         szFAPARfilenames =  [f for f in os.listdir(inputdirectory) if re.match(ptFAPARpattern, f)]
         szCLOUDfilenames =  [f for f in os.listdir(inputdirectory) if re.match(ptCLOUDpattern, f)]
         szSHADWfilenames =  [f for f in os.listdir(inputdirectory) if re.match(ptSHADWpattern, f)]
@@ -116,7 +170,7 @@ def makeflaggedenvi():
 
         #
         #
-        #         
+        #
         fapar_numpyparray = fapar_gdaldataset.ReadAsArray()
         cloud_numpyparray = cloud_gdaldataset.ReadAsArray()
         shadw_numpyparray = shadw_gdaldataset.ReadAsArray()
@@ -156,7 +210,7 @@ def makeflaggedenvi():
         flagged_numpyparray[mask_fapar_no_data & mask_scene_cloud_high_probability]    = 210 + scene_cloud_high_probability_value
         flagged_numpyparray[mask_fapar_no_data & mask_scene_thin_cirrus]               = 210 + scene_thin_cirrus_value
         flagged_numpyparray[mask_fapar_no_data & mask_scene_snow]                      = 210 + scene_snow_value
- 
+
 
         flagged_numpyparray[mask_fapar_data & mask_scene_no_data]                      = 230 + scene_no_data_value
         flagged_numpyparray[mask_fapar_data & mask_scene_saturated_or_defective]       = 230 + scene_saturated_or_defective_value
@@ -192,4 +246,4 @@ def makeflaggedenvi():
 #
 if __name__ == '__main__':
     makeflaggedenvi()
-    
+
