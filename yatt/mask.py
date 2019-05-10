@@ -96,7 +96,7 @@ class Convolve2dClassificationMask(Mask):
     create boolean mask from convolutions around a set of values(classes, to be masked) in a classification
 
     e.g. mask = Convolve2dClassificationMask(Convolve2dClassificationMask.ConditionSpec(5, [1,2], .5)).makemask(classification)
-    
+
     classification
     [[0 0 0 0 0]
      [0 0 0 0 0]
@@ -159,8 +159,12 @@ class Convolve2dClassificationMask(Mask):
         '''
 
         def makekernel(iwindowsize):
-            kernel_vect = scipy.signal.windows.gaussian(iwindowsize, std = iwindowsize/6.0, sym=True)
+            # using a boxcar (flat) kernel would relate to %-of-surface thresholds
+            # using a gaussian compromises between this and smoother masks
+            kernel_vect = scipy.signal.windows.gaussian(iwindowsize, std = iwindowsize/3.0, sym=True)
             kernel = numpy.outer(kernel_vect, kernel_vect)
+            kernel = kernel / kernel.sum()
+            if self._verbose: logging.info("Convolve2dClassificationMask.makemask: kernel size %s - maximum weight %0.3f" % (iwindowsize, kernel.max()))
             return kernel
 
         mask = numpy.zeros_like(scene_numpyparray, dtype=bool)
@@ -187,7 +191,7 @@ class Convolve2dClassificationMask(Mask):
             mask[submask] = True
 
             if self._verbose: 
-                logging.info("Convolve2dClassificationMask.makemask: pixels total: %s - %sin classes(%s): %s - convoluted(min %0.3f, max %0.3f): %s - masked(above(%s)): %s (%0.0f%%)" % (
+                logging.info("Convolve2dClassificationMask.makemask: pixels total: %s - %sin classes(%s): %s - convoluted(min %0.3f, max %0.3f): %s - masked(above(%0.3f)): %s (%0.0f%%)" % (
                     scene_numpyparray.size,
                     ('' if conditionSpec.fthreshold > 0 else 'NOT '),
                     (' '.join(map(str,conditionSpec.lstclassvalue))),

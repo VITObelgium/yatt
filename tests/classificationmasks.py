@@ -20,7 +20,7 @@ def domasks():
     band4_filename = os.path.join(tests.testdata.sztestdatarootdirectory,"31UFS\small_subset_S2B_20180705T105029Z_31UFS_TOC-B04_10M_V102.tif")
     band3_filename = os.path.join(tests.testdata.sztestdatarootdirectory,"31UFS\small_subset_S2B_20180705T105029Z_31UFS_TOC-B03_10M_V102.tif")
     band2_filename = os.path.join(tests.testdata.sztestdatarootdirectory,"31UFS\small_subset_S2B_20180705T105029Z_31UFS_TOC-B02_10M_V102.tif")
-    
+
     #
     #    fapar & rgb
     #
@@ -47,13 +47,13 @@ def domasks():
     #
     #    SimpleClassificationMask - allow 4,5,7 - since V102 water (6) cannot be trusted
     #
-    simple_mask_numpyparray = yatt.mask.SimpleClassificationMask([0,1,2,3,8,9,10,11], binvert=False).makemask(scene_numpyparray)
+    simple_mask_numpyparray = yatt.mask.SimpleClassificationMask([0,1,2,3,6,8,9,10,11], binvert=False).makemask(scene_numpyparray)
     #
     #    Convolve2dClassificationMask
     #
     conv_mask_numpyparray = yatt.mask.Convolve2dClassificationMask([
-        yatt.mask.Convolve2dClassificationMask.ConditionSpec(3,  [0, 1, 2, 6],  0.9),
-        yatt.mask.Convolve2dClassificationMask.ConditionSpec(61, [3, 8, 9, 10, 11],  0.9)
+        yatt.mask.Convolve2dClassificationMask.ConditionSpec(3,  [4, 5, 7],     -0.20),
+        yatt.mask.Convolve2dClassificationMask.ConditionSpec(61, [3, 8, 9, 10],  0.02)
         ]).makemask(scene_numpyparray)
     #
     #
@@ -82,26 +82,26 @@ def domasks():
         fapar_subtile = fapar_subtile_dataset.ReadAsArray()
 
         scene_subtile = scene_numpyparray[
-                subtileRasterInfo.subtile_upper_left_pixel_rowindex    : subtileRasterInfo.subtile_upper_left_pixel_rowindex    + subtileRasterInfo.subtile_pixel_rows, 
-                subtileRasterInfo.subtile_upper_left_pixel_columnindex : subtileRasterInfo.subtile_upper_left_pixel_columnindex + subtileRasterInfo.subtile_pixel_rows]
+            subtileRasterInfo.subtile_upper_left_pixel_rowindex    : subtileRasterInfo.subtile_upper_left_pixel_rowindex    + subtileRasterInfo.subtile_pixel_rows, 
+            subtileRasterInfo.subtile_upper_left_pixel_columnindex : subtileRasterInfo.subtile_upper_left_pixel_columnindex + subtileRasterInfo.subtile_pixel_columns]
 
         simple_mask = simple_mask_numpyparray[
             subtileRasterInfo.subtile_upper_left_pixel_rowindex    : subtileRasterInfo.subtile_upper_left_pixel_rowindex    + subtileRasterInfo.subtile_pixel_rows, 
-            subtileRasterInfo.subtile_upper_left_pixel_columnindex : subtileRasterInfo.subtile_upper_left_pixel_columnindex + subtileRasterInfo.subtile_pixel_rows]
+            subtileRasterInfo.subtile_upper_left_pixel_columnindex : subtileRasterInfo.subtile_upper_left_pixel_columnindex + subtileRasterInfo.subtile_pixel_columns]
 
         conv_mask = conv_mask_numpyparray[
             subtileRasterInfo.subtile_upper_left_pixel_rowindex    : subtileRasterInfo.subtile_upper_left_pixel_rowindex    + subtileRasterInfo.subtile_pixel_rows, 
-            subtileRasterInfo.subtile_upper_left_pixel_columnindex : subtileRasterInfo.subtile_upper_left_pixel_columnindex + subtileRasterInfo.subtile_pixel_rows]
+            subtileRasterInfo.subtile_upper_left_pixel_columnindex : subtileRasterInfo.subtile_upper_left_pixel_columnindex + subtileRasterInfo.subtile_pixel_columns]
 
         r_subtile = r_band4_numpyarray[
             subtileRasterInfo.subtile_upper_left_pixel_rowindex    : subtileRasterInfo.subtile_upper_left_pixel_rowindex    + subtileRasterInfo.subtile_pixel_rows, 
-            subtileRasterInfo.subtile_upper_left_pixel_columnindex : subtileRasterInfo.subtile_upper_left_pixel_columnindex + subtileRasterInfo.subtile_pixel_rows]
+            subtileRasterInfo.subtile_upper_left_pixel_columnindex : subtileRasterInfo.subtile_upper_left_pixel_columnindex + subtileRasterInfo.subtile_pixel_columns]
         g_subtile = g_band3_numpyarray[
             subtileRasterInfo.subtile_upper_left_pixel_rowindex    : subtileRasterInfo.subtile_upper_left_pixel_rowindex    + subtileRasterInfo.subtile_pixel_rows, 
-            subtileRasterInfo.subtile_upper_left_pixel_columnindex : subtileRasterInfo.subtile_upper_left_pixel_columnindex + subtileRasterInfo.subtile_pixel_rows]
+            subtileRasterInfo.subtile_upper_left_pixel_columnindex : subtileRasterInfo.subtile_upper_left_pixel_columnindex + subtileRasterInfo.subtile_pixel_columns]
         b_subtile = b_band2_numpyarray[
             subtileRasterInfo.subtile_upper_left_pixel_rowindex    : subtileRasterInfo.subtile_upper_left_pixel_rowindex    + subtileRasterInfo.subtile_pixel_rows, 
-            subtileRasterInfo.subtile_upper_left_pixel_columnindex : subtileRasterInfo.subtile_upper_left_pixel_columnindex + subtileRasterInfo.subtile_pixel_rows]
+            subtileRasterInfo.subtile_upper_left_pixel_columnindex : subtileRasterInfo.subtile_upper_left_pixel_columnindex + subtileRasterInfo.subtile_pixel_columns]
 
         figure = matplotlib.pyplot.figure(figsize=(6,8))
         gridspec_rows = 4
@@ -117,7 +117,7 @@ def domasks():
         scene_fulltile_numpyarray = scene_numpyparray.copy()
         scene_fulltile_numpyarray[
             subtileRasterInfo.subtile_upper_left_pixel_rowindex    : subtileRasterInfo.subtile_upper_left_pixel_rowindex    + subtileRasterInfo.subtile_pixel_rows, 
-            subtileRasterInfo.subtile_upper_left_pixel_columnindex : subtileRasterInfo.subtile_upper_left_pixel_columnindex + subtileRasterInfo.subtile_pixel_rows] = tests.testdata.scene_saturated_or_defective_value # red
+            subtileRasterInfo.subtile_upper_left_pixel_columnindex : subtileRasterInfo.subtile_upper_left_pixel_columnindex + subtileRasterInfo.subtile_pixel_columns] = tests.testdata.scene_saturated_or_defective_value # red
         axis.imshow(scene_fulltile_numpyarray, norm=tests.testdata.scene_norm, cmap=tests.testdata.scene_cmap)
 
         # [0,1] full fapar
@@ -127,7 +127,7 @@ def domasks():
         fapar_fulltile_numpyarray = fapar_numpyparray.copy()
         fapar_fulltile_numpyarray[
             subtileRasterInfo.subtile_upper_left_pixel_rowindex    : subtileRasterInfo.subtile_upper_left_pixel_rowindex    + subtileRasterInfo.subtile_pixel_rows, 
-            subtileRasterInfo.subtile_upper_left_pixel_columnindex : subtileRasterInfo.subtile_upper_left_pixel_columnindex + subtileRasterInfo.subtile_pixel_rows] = tests.testdata.nodatavalue # grey
+            subtileRasterInfo.subtile_upper_left_pixel_columnindex : subtileRasterInfo.subtile_upper_left_pixel_columnindex + subtileRasterInfo.subtile_pixel_columns] = tests.testdata.nodatavalue # grey
         axis.imshow(fapar_fulltile_numpyarray, norm=tests.testdata.fapar_norm, cmap=tests.testdata.fapar_cmap)
 
         # [0,2] full rgb

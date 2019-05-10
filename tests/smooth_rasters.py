@@ -1,19 +1,21 @@
 #
 #
 #
+import logging
 import os
 import re
 import numpy
 import osgeo.gdal
 import matplotlib.pyplot
 import yatt.smooth
+import yatt.mask
 import yutils.dutils
 import tests.testdata
 
 #
 #
 #
-def dorasters(inputdirectory, bmakepng = False, bmakeenvi = False):
+def dorasters(inputdirectory, bmakepng = False, bmakeenvi = False, busemask = False):
     #
     #
     #
@@ -25,9 +27,10 @@ def dorasters(inputdirectory, bmakepng = False, bmakeenvi = False):
     #
     zedates               = []
     zerasters             = []
+    zefapars              = []
     iIdx                  = - 1
     numberofobservations  = 0
-    
+
     ref_geotransform      = None
     ref_projection        = None
     ref_rasterxsize       = None
@@ -40,6 +43,7 @@ def dorasters(inputdirectory, bmakepng = False, bmakeenvi = False):
 
         zedates.append(date_yyyymmdd)
         zerasters.append(None)
+        zefapars.append(None)
         iIdx += 1
 
         ptFAPARpattern = tests.testdata.makefilenamepattern(date_yyyymmdd, "FAPAR_10M")
@@ -81,54 +85,78 @@ def dorasters(inputdirectory, bmakepng = False, bmakeenvi = False):
         scene_numpyparray = scene_gdaldataset.ReadAsArray()
 
         #
-        #    some statistics
-        #    - it is hard to find out what exactly is flagged as no data in fapar. (probably cloudmask and shadowmask. but what about snow...)
-        #    - using the scene classification requires converting to 10meter resolution
-        #    - scene classification "low probability clouds" seems to have problems; some fields sometimes match exactly the low probability clouds? (hence, reluctantly we allow scenes 4,5,6 AND 7)
         #
-        total_pixels_in_roi              = fapar_numpyparray.size
-        total_pixels_as_cloud            = cloud_numpyparray[cloud_numpyparray != 0].size
-        total_pixels_as_shadw            = shadw_numpyparray[shadw_numpyparray != 0].size
-        total_pixels_as_nodata           = fapar_numpyparray[fapar_numpyparray > tests.testdata.maximumdatavalue].size
+        #
+        zefapars[iIdx] = fapar_numpyparray
 
-        total_pixels_fapar_data          = fapar_numpyparray[(fapar_numpyparray <= tests.testdata.maximumdatavalue)].size
-        total_pixels_fapar_unmasked_data = fapar_numpyparray[(fapar_numpyparray <= tests.testdata.maximumdatavalue) & (cloud_numpyparray == 0) & (shadw_numpyparray == 0)].size
-        #
-        #    we'd prefer (scene_numpyparray < 7) but we'll allow 'low probability' clouds,
-        #    since in some cases they seem to match our field exactly, which seems to be some bug
-        #
-        #total_pixels_fapar_perfect_data  = fapar_numpyparray[(fapar_numpyparray <= tests.testdata.maximumdatavalue) & (scene_numpyparray < 8) & (scene_numpyparray > 3)].size    
-        #
-        #    actually, at the moment CLOUDMASK_10M and SHADOWMASK_10M are burned 
-        #    in FAPAR_10M as no-data but who knows what happens in next version
-        #
-        total_pixels_fapar_perfect_data  = fapar_numpyparray[(fapar_numpyparray <= tests.testdata.maximumdatavalue) & (cloud_numpyparray == 0) & (shadw_numpyparray == 0) & (scene_numpyparray < 8) & (scene_numpyparray > 3)].size    
         #
         #
         #
-        if 0 < total_pixels_fapar_perfect_data:
-  
-            numberofobservations += 1
-
+        if not busemask:
+            #
+            #    original implementation - alternative using scene classification masks below 
+            #
+            #
+            #    some statistics
+            #    - it is hard to find out what exactly is flagged as no data in fapar. (probably cloudmask and shadowmask. but what about snow...)
+            #    - using the scene classification requires converting to 10meter resolution
+            #    - scene classification "low probability clouds" seems to have problems; some fields sometimes match exactly the low probability clouds? (hence, reluctantly we allow scenes 4,5,6 AND 7)
+            #
+            total_pixels_in_roi              = fapar_numpyparray.size
+            total_pixels_as_cloud            = cloud_numpyparray[cloud_numpyparray != 0].size
+            total_pixels_as_shadw            = shadw_numpyparray[shadw_numpyparray != 0].size
+            total_pixels_as_nodata           = fapar_numpyparray[fapar_numpyparray > tests.testdata.maximumdatavalue].size
+    
+            total_pixels_fapar_data          = fapar_numpyparray[(fapar_numpyparray <= tests.testdata.maximumdatavalue)].size
+            total_pixels_fapar_unmasked_data = fapar_numpyparray[(fapar_numpyparray <= tests.testdata.maximumdatavalue) & (cloud_numpyparray == 0) & (shadw_numpyparray == 0)].size
+            #
+            #    we'd prefer (scene_numpyparray < 7) but we'll allow 'low probability' clouds,
+            #    since in some cases they seem to match our field exactly, which seems to be some bug
+            #
+            #total_pixels_fapar_perfect_data  = fapar_numpyparray[(fapar_numpyparray <= tests.testdata.maximumdatavalue) & (scene_numpyparray < 8) & (scene_numpyparray > 3)].size    
+            #
+            #    actually, at the moment CLOUDMASK_10M and SHADOWMASK_10M are burned 
+            #    in FAPAR_10M as no-data but who knows what happens in next version
+            #
+            total_pixels_fapar_perfect_data  = fapar_numpyparray[(fapar_numpyparray <= tests.testdata.maximumdatavalue) & (cloud_numpyparray == 0) & (shadw_numpyparray == 0) & (scene_numpyparray < 8) & (scene_numpyparray > 3)].size    
+            #
+            #
+            #
             zeraster = numpy.copy(fapar_numpyparray)
-
             zeraster[ (fapar_numpyparray > tests.testdata.maximumdatavalue) | (cloud_numpyparray ==1) | (shadw_numpyparray==1) | (scene_numpyparray >= 8) | (scene_numpyparray <= 3)] = tests.testdata.nodatavalue
             zerasters[iIdx] = zeraster
 
-            if True:
-                print ("observation %s:" % (date_yyyymmdd))
-                print ("total pixels in roi          %s" % (total_pixels_in_roi))
-                print ("total fapar as no data       %s" % (total_pixels_as_nodata))
-                print ("total fapar as data          %s" % (total_pixels_fapar_data))
-                print ("total pixels as cloud        %s" % (total_pixels_as_cloud))
-                print ("total pixels as shadow       %s" % (total_pixels_as_shadw))
-                print ("total fapar as unmasked data %s" % (total_pixels_fapar_unmasked_data))
-                print ("sum cloud and shadow         %s" % (total_pixels_as_cloud + total_pixels_as_shadw))
-                print ("total fapar perfect pixels   %s" % (total_pixels_fapar_perfect_data))
-                print
+            if 0 < total_pixels_fapar_perfect_data:
 
-    print ("number of dates: %s - number of observations: %s" % (iIdx + 1, numberofobservations))
-    print
+                numberofobservations += 1
+    
+                if True:
+                    print ("observation %s:" % (date_yyyymmdd))
+                    print ("total pixels in roi          %s" % (total_pixels_in_roi))
+                    print ("total fapar as no data       %s" % (total_pixels_as_nodata))
+                    print ("total fapar as data          %s" % (total_pixels_fapar_data))
+                    print ("total pixels as cloud        %s" % (total_pixels_as_cloud))
+                    print ("total pixels as shadow       %s" % (total_pixels_as_shadw))
+                    print ("total fapar as unmasked data %s" % (total_pixels_fapar_unmasked_data))
+                    print ("sum cloud and shadow         %s" % (total_pixels_as_cloud + total_pixels_as_shadw))
+                    print ("total fapar perfect pixels   %s" % (total_pixels_fapar_perfect_data))
+                    print
+    
+            print ("number of dates: %s - number of observations: %s" % (iIdx + 1, numberofobservations))
+            print ("")
+
+        else:
+            #
+            #    alternative using scene classification masks 
+            #
+            print ("observation %s:" % (date_yyyymmdd))
+            #
+            #    Convolve2dClassificationMask
+            #
+            zerasters[iIdx] = yatt.mask.Convolve2dClassificationMask([
+                yatt.mask.Convolve2dClassificationMask.ConditionSpec(3,  [4, 5, 7],     -0.90),
+                yatt.mask.Convolve2dClassificationMask.ConditionSpec(11, [3, 8, 9, 10],  0.05)
+                ]).mask(fapar_numpyparray, scene_numpyparray, maskedvalue=tests.testdata.nodatavalue, copy=True)
 
     #
     #    outlier parameters
@@ -187,20 +215,25 @@ def dorasters(inputdirectory, bmakepng = False, bmakeenvi = False):
         smoothedraster = numpy.empty((ref_rasterysize, ref_rasterxsize), dtype=numpy.uint8)
         notnanraster   = numpy.empty((ref_rasterysize, ref_rasterxsize), dtype=bool)
         for iIdx in range(zeresults.shape[0]):
-     
+
             if not (~numpy.isnan(zeresults[iIdx])).any(): continue
-            
-            if zedates[iIdx].endswith("01") or zedates[iIdx].endswith("10") or zedates[iIdx].endswith("21"):
+
+            if zedates[iIdx].endswith("01") or zedates[iIdx].endswith("11") or zedates[iIdx].endswith("21"):
+                #
+                #    actually, on planet Herman one should probably select "05", "15" and  "25" and save them as "01", "11" and "21"
+                #
                 smoothedraster[:] = tests.testdata.nodatavalue
                 notnanraster[:] = ~numpy.isnan(zeresults[iIdx])
                 smoothedraster[notnanraster] = numpy.where(zeresults[iIdx][notnanraster]>tests.testdata.maximumdatavalue, tests.testdata.maximumdatavalue, numpy.rint(zeresults[iIdx][notnanraster])) 
-                
+
                 envi_name = os.path.join(tests.testdata.sztestdatarootdirectory,"fAPAR_%s.img"%(zedates[iIdx]))
                 envi_gdaldataset = osgeo.gdal.GetDriverByName("ENVI").Create(envi_name, ref_rasterxsize, ref_rasterysize, 1, osgeo.gdalconst.GDT_Byte)
+                envi_gdaldataset.SetMetadataItem('values', "{fapar, -, 0, 200, 0, 200, 0, 0.005}",      'ENVI')
+                envi_gdaldataset.SetMetadataItem('flags',  "{" + str(tests.testdata.nodatavalue) + "}", 'ENVI')
                 envi_gdaldataset.SetGeoTransform(ref_geotransform)
                 envi_gdaldataset.SetProjection(ref_projection)
                 envi_gdaldataset.GetRasterBand(1).WriteArray(smoothedraster)
-                
+
                 if do_envi_png :
                     png_name= os.path.join(tests.testdata.sztestdatarootdirectory,"fAPAR_%s.png"%(zedates[iIdx]))
                     osgeo.gdal.GetDriverByName('PNG').CreateCopy(png_name, envi_gdaldataset)
@@ -216,7 +249,7 @@ def dorasters(inputdirectory, bmakepng = False, bmakeenvi = False):
     whitnotnan     = numpy.empty((ref_rasterysize, ref_rasterxsize), dtype=bool)
     swetsraster    = numpy.empty((ref_rasterysize, ref_rasterxsize), dtype=numpy.uint8)
     swetsnotnan    = numpy.empty((ref_rasterysize, ref_rasterxsize), dtype=bool)
-    
+
     for iIdx in range(len(zerasters)):
 
         if zerasters[iIdx] is None: continue
@@ -225,7 +258,7 @@ def dorasters(inputdirectory, bmakepng = False, bmakeenvi = False):
         #    original raster has values 0-200 + no data 255
         #
         originalraster[:] = tests.testdata.nodatavalue
-        originalisdata[:] = (tests.testdata.minimumdatavalue <= zerasters[iIdx]) &  (zerasters[iIdx] <= tests.testdata.maximumdatavalue)
+        originalisdata[:] = (tests.testdata.minimumdatavalue <= zerasters[iIdx]) & (zerasters[iIdx] <= tests.testdata.maximumdatavalue)
         originalraster[originalisdata] = numpy.where(zerasters[iIdx][originalisdata]>tests.testdata.maximumdatavalue, tests.testdata.maximumdatavalue, numpy.rint(zerasters[iIdx][originalisdata]))
         #
         #    smoothed raster has (float) values  0-200 + nan's 
@@ -243,26 +276,36 @@ def dorasters(inputdirectory, bmakepng = False, bmakeenvi = False):
         #
         #
         rows = 1
-        cols = 3
+        cols = 4
         subplots = numpy.empty( (rows,cols), dtype=object )
-        figure = matplotlib.pyplot.figure(figsize=(16,6))
+        figure = matplotlib.pyplot.figure(figsize=(10,3))
         for irow in range(rows):
             for icol in range(cols):
                 subplots[irow, icol] = figure.add_subplot(rows, cols, 1 + icol + irow * cols)
+                subplots[irow, icol].set_xticklabels([])
+                subplots[irow, icol].set_yticklabels([])
 
         row = 0; col = 0
-        subplots[row, col].imshow(originalraster.astype(float), norm=tests.testdata.faparnorm, cmap=tests.testdata.faparcolormap)
+        subplots[row, col].imshow(zefapars[iIdx], norm=tests.testdata.fapar_norm, cmap=tests.testdata.fapar_cmap)
         subplots[row, col].set_title("original")
 
         row = 0; col = 1
-        subplots[row, col].imshow(whitraster.astype(float), norm=tests.testdata.faparnorm, cmap=tests.testdata.faparcolormap)
-        subplots[row, col].set_title("whittaker")
+        #subplots[row, col].imshow(originalraster.astype(float), norm=tests.testdata.faparnorm, cmap=tests.testdata.faparcolormap)
+        subplots[row, col].imshow(originalraster, norm=tests.testdata.fapar_norm, cmap=tests.testdata.fapar_cmap)
+        subplots[row, col].set_title("masked")
 
         row = 0; col = 2
-        subplots[row, col].imshow(swetsraster.astype(float), norm=tests.testdata.faparnorm, cmap=tests.testdata.faparcolormap)
+        #subplots[row, col].imshow(whitraster.astype(float), norm=tests.testdata.faparnorm, cmap=tests.testdata.faparcolormap)
+        subplots[row, col].imshow(whitraster, norm=tests.testdata.fapar_norm, cmap=tests.testdata.fapar_cmap)
+        subplots[row, col].set_title("whittaker")
+
+        row = 0; col = 3
+        #subplots[row, col].imshow(swetsraster.astype(float), norm=tests.testdata.faparnorm, cmap=tests.testdata.faparcolormap)
+        subplots[row, col].imshow(swetsraster, norm=tests.testdata.fapar_norm, cmap=tests.testdata.fapar_cmap)
         subplots[row, col].set_title("swets")
 
-        matplotlib.pyplot.suptitle("Field: %s  -  Date: %s" % (os.path.basename(inputdirectory), zedates[iIdx]) )
+        matplotlib.pyplot.subplots_adjust(left = 0.02, right = 0.98, wspace=0.1, hspace=0.2)
+        matplotlib.pyplot.suptitle("Field: %s  -  Date: %s %s" % (os.path.basename(inputdirectory), zedates[iIdx], ('- using sc mask' if busemask else '')) )
 
         if bmakepng:
             matplotlib.pyplot.savefig(os.path.join(tests.testdata.sztestdatarootdirectory, os.path.basename(inputdirectory) + "_Smoothed_Raster_%s.png"%(zedates[iIdx])), dpi=300)
@@ -275,13 +318,15 @@ def dorasters(inputdirectory, bmakepng = False, bmakeenvi = False):
 #
 #
 if __name__ == '__main__':
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname).3s %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
     #
     #
     #
     bmakepng  = False
     bmakeenvi = False
-    dorasters( os.path.join(tests.testdata.sztestdatarootdirectory, "2-AVy-ofdls9bS8_4_3GLH"  ), bmakepng, bmakeenvi)
-    dorasters( os.path.join(tests.testdata.sztestdatarootdirectory, "29-AV0TcoCXZjsFpiOBA3gL" ), bmakepng, bmakeenvi)
-    dorasters( os.path.join(tests.testdata.sztestdatarootdirectory, "190-AVzO_BSZZjsFpiOBRYcR"), bmakepng, bmakeenvi)
+    busemask  = False
+    dorasters( os.path.join(tests.testdata.sztestdatarootdirectory, "2-AVy-ofdls9bS8_4_3GLH"  ), bmakepng, bmakeenvi, busemask)
+    dorasters( os.path.join(tests.testdata.sztestdatarootdirectory, "29-AV0TcoCXZjsFpiOBA3gL" ), bmakepng, bmakeenvi, busemask)
+    dorasters( os.path.join(tests.testdata.sztestdatarootdirectory, "190-AVzO_BSZZjsFpiOBRYcR"), bmakepng, bmakeenvi, busemask)
 
 

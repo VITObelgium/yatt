@@ -7,7 +7,6 @@ import numpy
 import osgeo.gdal
 import matplotlib.pyplot
 import matplotlib.colors
-import yatt.smooth
 import yutils.futils
 import yutils.dutils
 
@@ -82,7 +81,7 @@ fapar_rgb_int = [(168,  80,   0),
 fapar_rgb  = [(r/255., g/255., b/255.) for (r, g, b) in fapar_rgb_int]
 fapar_cmap = matplotlib.colors.ListedColormap(fapar_rgb)
 #fapar_norm = matplotlib.colors.BoundaryNorm( [b/200. for b in [0, 20, 40, 60, 80, 100, 120, 140, 160, 180, 200, 255]], fapar_cmap.N)
-fapar_norm = matplotlib.colors.BoundaryNorm( [b - 0.5 for b in [0, 20, 40, 60, 80, 100, 120, 140, 160, 180, 200, 255]], fapar_cmap.N)
+fapar_norm = matplotlib.colors.BoundaryNorm( [b - 0.5 for b in [0, 20, 40, 60, 80, 100, 120, 140, 160, 180, 201, 255]], fapar_cmap.N)
 
 scene_rgb_int = [(scene_no_data_value,             (  0,   0,   0)),
           (scene_saturated_or_defective_value,     (255,   0,   0)),
