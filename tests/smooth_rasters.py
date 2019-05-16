@@ -324,7 +324,7 @@ if __name__ == '__main__':
     #
     bmakepng  = False
     bmakeenvi = False
-    busemask  = False
+    busemask  = True
     dorasters( os.path.join(tests.testdata.sztestdatarootdirectory, "2-AVy-ofdls9bS8_4_3GLH"  ), bmakepng, bmakeenvi, busemask)
     dorasters( os.path.join(tests.testdata.sztestdatarootdirectory, "29-AV0TcoCXZjsFpiOBA3gL" ), bmakepng, bmakeenvi, busemask)
     dorasters( os.path.join(tests.testdata.sztestdatarootdirectory, "190-AVzO_BSZZjsFpiOBRYcR"), bmakepng, bmakeenvi, busemask)

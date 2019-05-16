@@ -161,10 +161,10 @@ class Convolve2dClassificationMask(Mask):
         def makekernel(iwindowsize):
             # using a boxcar (flat) kernel would relate to %-of-surface thresholds
             # using a gaussian compromises between this and smoother masks
-            kernel_vect = scipy.signal.windows.gaussian(iwindowsize, std = iwindowsize/3.0, sym=True)
+            kernel_vect = scipy.signal.windows.gaussian(iwindowsize, std = iwindowsize/6.0, sym=True)
             kernel = numpy.outer(kernel_vect, kernel_vect)
             kernel = kernel / kernel.sum()
-            if self._verbose: logging.info("Convolve2dClassificationMask.makemask: kernel size %s - maximum weight %0.3f" % (iwindowsize, kernel.max()))
+            if self._verbose: logging.info("Convolve2dClassificationMask.makemask: kernel size %s - weights: max(%0.5f) - min(%0.5f)" % (iwindowsize, kernel.max(), kernel.min()))
             return kernel
 
         mask = numpy.zeros_like(scene_numpyparray, dtype=bool)

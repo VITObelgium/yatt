@@ -2,11 +2,13 @@
 #
 #
 import osgeo.gdal
+import math
+import os
 
 
 
 """
-some misc gdal utilities - no rocket science, just tired of googling them each time. 
+some misc gdal utilities and snippets - no rocket science, just tired of googling them each time. 
 """
 
 #
@@ -93,7 +95,7 @@ def resampleclassificationrasterdataset(srcRasterDataset, refRasterFileDataset, 
     resample/reproject source to destination according to reference file
     method is GRA_Mode - as suited for classifications (e.g. S2 SCENECLASSIFICATION from _20M to _10M)
     rem: for the time being; only single band
-    
+
     TODO: introduce (or check) explicit driver (e.g. 'by name' ?) -> in case srcRasterDataset driver is 'MEM', the dst cannot be written to file
     """
     #
@@ -140,6 +142,9 @@ def extractroirasterdataset(srcRasterDataset, upperleftpixelcolumnindex, upperle
 
     dst_rastr_gdaldataset.SetProjection(srcRasterDataset.GetProjection())
 
+    if srcRasterDataset.GetRasterBand(1).GetNoDataValue() is not None:
+        dst_rastr_gdaldataset.GetRasterBand(1).SetNoDataValue(srcRasterDataset.GetRasterBand(1).GetNoDataValue())
+
     dst_rastr_gdaldataset.SetGeoTransform(shiftgeotransform(
         srcRasterDataset.GetGeoTransform(), 
         upperleftpixelcolumnindex, 
@@ -154,4 +159,136 @@ def extractroirasterdataset(srcRasterDataset, upperleftpixelcolumnindex, upperle
 
     return dst_rastr_gdaldataset
 
+#
+#
+#
+def mosaicrasterfiles(lstSrcRasterFileNames, dstRasterFileName = None, missingDataValue = None):
+    """
+    mosaic files into dataset. assumes files of identical datatype, projection, framing, ...
+    typically for recombining results when rasters have been divided in sub-tiles for processing
+
+    rem: for the time being; only single band
+    """
+
+    bisfirstpass = True
+
+    for srcRasterFileName in lstSrcRasterFileNames:
+        src_gdaldataset  = osgeo.gdal.Open(srcRasterFileName)
+        if src_gdaldataset is None: 
+            continue
+
+        src_rasterxsize  = src_gdaldataset.RasterXSize
+        src_rasterysize  = src_gdaldataset.RasterYSize
+        src_geotransform = src_gdaldataset.GetGeoTransform()
+        src_projection   = src_gdaldataset.GetProjection()
+        src_datatype     = src_gdaldataset.GetRasterBand(1).DataType
+        src_nodatavalue  = src_gdaldataset.GetRasterBand(1).GetNoDataValue()
+        src_ulx_geo      = src_geotransform[0]
+        src_uly_geo      = src_geotransform[3]
+        src_dx_geo       = src_geotransform[1]
+        src_dy_geo       = src_geotransform[5]
+        src_brx_geo      = src_ulx_geo + src_dx_geo * src_rasterxsize
+        src_bry_geo      = src_uly_geo + src_dy_geo * src_rasterysize # src_dy_geo is negative
+
+        if bisfirstpass:
+            bisfirstpass    = False
+            dst_projection  = src_projection  # won't change - assumed constant
+            dst_datatype    = src_datatype    # won't change - assumed constant - checked
+            dst_nodatavalue = src_nodatavalue # won't change - assumed constant (or none) - checked
+            dst_ulx_geo     = src_ulx_geo
+            dst_uly_geo     = src_uly_geo
+            dst_dx_geo      = src_dx_geo      # won't change - assumed constant - checked (more or less)
+            dst_dy_geo      = src_dy_geo      # won't change - assumed constant - checked (more or less) - dst_dy_geo is negative
+            dst_brx_geo     = src_brx_geo
+            dst_bry_geo     = src_bry_geo
+            dst_rasterxsize = src_rasterxsize
+            dst_rasterysize = src_rasterysize
+
+        else:
+            dst_ulx_geo     = min(dst_ulx_geo, src_ulx_geo)
+            dst_uly_geo     = max(dst_uly_geo, src_uly_geo)
+            dst_brx_geo     = max(dst_brx_geo, src_brx_geo)
+            dst_bry_geo     = min(dst_bry_geo, src_bry_geo)
+            dst_rasterxsize = int(round( (dst_brx_geo - dst_ulx_geo) / dst_dx_geo ))
+            dst_rasterysize = int(round( (dst_bry_geo - dst_uly_geo) / dst_dy_geo ))  # dst_dy_geo is negative
+            #
+            #    some handwaving
+            #
+            if not dst_datatype == src_datatype:
+                raise ValueError("deviant datatype in file '%s'" % (os.path.basename(srcRasterFileName),))
+            if src_nodatavalue is not None:
+                if not dst_nodatavalue == src_nodatavalue:
+                    raise ValueError("deviant nodata value in file '%s'" % (os.path.basename(srcRasterFileName),))
+            else:
+                if dst_nodatavalue is not None:
+                    raise ValueError("deviant None nodata value in file '%s'" % (os.path.basename(srcRasterFileName),))
+            if not math.isclose(dst_dx_geo, src_dx_geo, rel_tol=0.01/src_rasterxsize):
+                raise ValueError("deviant x-resolution in file '%s'" % (os.path.basename(srcRasterFileName),))
+            if not math.isclose(dst_dy_geo, src_dy_geo, rel_tol=0.01/src_rasterxsize):
+                raise ValueError("deviant y-resolution in file '%s'" % (os.path.basename(srcRasterFileName),))
+            if not math.isclose(dst_rasterxsize, ((dst_brx_geo - dst_ulx_geo) / dst_dx_geo), abs_tol=0.01):
+                raise ValueError("deviant x-framing in file '%s'" % (os.path.basename(srcRasterFileName),))
+            if not math.isclose(dst_rasterysize, ((dst_bry_geo - dst_uly_geo) / dst_dy_geo), abs_tol=0.01):
+                raise ValueError("deviant y-framing in file '%s'" % (os.path.basename(srcRasterFileName),))
+
+        # close src
+        src_gdaldataset = None
+
+    #
+    #    if still in bisfirstpass this means each file has been skipped
+    #
+    if bisfirstpass: raise ValueError("no datasets available")
+
+    #
+    #
+    #
+    dst_rastr_gdaldataset = None
+
+    for srcRasterFileName in lstSrcRasterFileNames:
+        src_gdaldataset  = osgeo.gdal.Open(srcRasterFileName)
+        if src_gdaldataset is None: continue
+
+        if dst_rastr_gdaldataset is None:
+            if dstRasterFileName is not None:
+                dst_rastr_gdaldataset = src_gdaldataset.GetDriver().Create( dstRasterFileName, dst_rasterxsize, dst_rasterysize, 1, dst_datatype)
+            else:
+                dst_rastr_gdaldataset = osgeo.gdal.GetDriverByName('MEM').Create( '', dst_rasterxsize, dst_rasterysize, 1, dst_datatype)
+            dst_rastr_gdaldataset.SetGeoTransform([dst_ulx_geo, dst_dx_geo, 0, dst_uly_geo, 0, dst_dy_geo])
+            dst_rastr_gdaldataset.SetProjection(dst_projection)
+
+            dst_numpyarray = dst_rastr_gdaldataset.GetRasterBand(1).ReadAsArray()
+
+            #
+            #    the data arrays defaults to  missingDataValue if specified, else to dst_nodatavalue if available, else in gdal we trust 
+            #    the nodatavalue defaults to  dst_nodatavalue if available, else to missingDataValue if, else in gdal we trust 
+            #
+            if missingDataValue is not None:
+                dst_numpyarray.fill(missingDataValue)
+                if dst_nodatavalue is None:
+                    dst_rastr_gdaldataset.GetRasterBand(1).SetNoDataValue(missingDataValue)
+
+            if dst_nodatavalue is not None:
+                dst_rastr_gdaldataset.GetRasterBand(1).SetNoDataValue(dst_nodatavalue)
+                if missingDataValue is None:
+                    dst_numpyarray.fill(dst_nodatavalue)
+
+        # target window
+        src_rasterxsize  = src_gdaldataset.RasterXSize
+        src_rasterysize  = src_gdaldataset.RasterYSize
+        src_geotransform = src_gdaldataset.GetGeoTransform()
+        src_ulx_geo      = src_geotransform[0]
+        src_uly_geo      = src_geotransform[3]
+
+        ulx_colidx, uly_rowidx = world2pixel(dst_rastr_gdaldataset.GetGeoTransform(), src_ulx_geo, src_uly_geo)
+        ulx_colidx = int(round(ulx_colidx))
+        uly_rowidx = int(round(uly_rowidx))
+
+        # fill out dst
+        dst_numpyarray[uly_rowidx:uly_rowidx+src_rasterysize, ulx_colidx:ulx_colidx+src_rasterxsize] = src_gdaldataset.ReadAsArray()
+        # close src
+        src_gdaldataset = None
+
+
+    dst_rastr_gdaldataset.GetRasterBand(1).WriteArray(dst_numpyarray)
+    return dst_rastr_gdaldataset
 

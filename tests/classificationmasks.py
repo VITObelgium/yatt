@@ -13,13 +13,13 @@ import tests.testdata
 #
 #
 #
-def domasks():
+def domasks(bmakepng):
 
-    fapar_filename = os.path.join(tests.testdata.sztestdatarootdirectory,"31UFS\small_subset_S2B_20180705T105029Z_31UFS_FAPAR_10M_V102.tif")
-    scene_filename = os.path.join(tests.testdata.sztestdatarootdirectory,"31UFS\small_subset_S2B_20180705T105029Z_31UFS_SCENECLASSIFICATION_20M_V102.tif")
-    band4_filename = os.path.join(tests.testdata.sztestdatarootdirectory,"31UFS\small_subset_S2B_20180705T105029Z_31UFS_TOC-B04_10M_V102.tif")
-    band3_filename = os.path.join(tests.testdata.sztestdatarootdirectory,"31UFS\small_subset_S2B_20180705T105029Z_31UFS_TOC-B03_10M_V102.tif")
-    band2_filename = os.path.join(tests.testdata.sztestdatarootdirectory,"31UFS\small_subset_S2B_20180705T105029Z_31UFS_TOC-B02_10M_V102.tif")
+    fapar_filename = os.path.join(tests.testdata.sztestdatarootdirectory,"31UFS/small_subset_S2B_20180705T105029Z_31UFS_FAPAR_10M_V102.tif")
+    scene_filename = os.path.join(tests.testdata.sztestdatarootdirectory,"31UFS/small_subset_S2B_20180705T105029Z_31UFS_SCENECLASSIFICATION_20M_V102.tif")
+    band4_filename = os.path.join(tests.testdata.sztestdatarootdirectory,"31UFS/small_subset_S2B_20180705T105029Z_31UFS_TOC-B04_10M_V102.tif")
+    band3_filename = os.path.join(tests.testdata.sztestdatarootdirectory,"31UFS/small_subset_S2B_20180705T105029Z_31UFS_TOC-B03_10M_V102.tif")
+    band2_filename = os.path.join(tests.testdata.sztestdatarootdirectory,"31UFS/small_subset_S2B_20180705T105029Z_31UFS_TOC-B02_10M_V102.tif")
 
     #
     #    fapar & rgb
@@ -52,8 +52,8 @@ def domasks():
     #    Convolve2dClassificationMask
     #
     conv_mask_numpyparray = yatt.mask.Convolve2dClassificationMask([
-        yatt.mask.Convolve2dClassificationMask.ConditionSpec(3,  [4, 5, 7],     -0.20),
-        yatt.mask.Convolve2dClassificationMask.ConditionSpec(61, [3, 8, 9, 10],  0.02)
+        yatt.mask.Convolve2dClassificationMask.ConditionSpec(3,  [4, 5, 7],     -0.19),
+        yatt.mask.Convolve2dClassificationMask.ConditionSpec(61, [3, 8, 9, 10],  0.05)
         ]).makemask(scene_numpyparray)
     #
     #
@@ -249,7 +249,11 @@ def domasks():
             subtileRasterInfo.fulltile_subtile_rowindex,
             subtileRasterInfo.fulltile_subtile_columns, 
             subtileRasterInfo.fulltile_subtile_rows) )
-        matplotlib.pyplot.show()
+
+        if bmakepng:
+            matplotlib.pyplot.savefig(os.path.join(tests.testdata.sztestdatarootdirectory, "Masking_X%03dY%03d.png"%(subtileRasterInfo.fulltile_subtile_columnindex,subtileRasterInfo.fulltile_subtile_rowindex)), dpi=300)
+        else:
+            matplotlib.pyplot.show()
         #
         #    close('all') should be enough, but somehow sometimes it still seams to leak
         #
@@ -271,7 +275,14 @@ def domasks():
 #
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname).3s %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
-    domasks()
+    #
+    #
+    #
+    bmakepng = False
+    #
+    #
+    #
+    domasks(bmakepng)
 
 
 

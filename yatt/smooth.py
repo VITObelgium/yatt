@@ -1,10 +1,11 @@
+import logging
 import numpy
 import numbers
 
 #
 #
 #
-def makedatacube(listofdatarasters, listofflagrasters=None, minimumdatavalue=None, maximumdatavalue=None):
+def makedatacube(listofdatarasters, listofflagrasters=None, minimumdatavalue=None, maximumdatavalue=None, verbose=True):
     """
     list of data rasters: periodic list containing either numpy.ndarray's containing the data or None for missing periods 
     list of flag rasters: periodic list containing either boolean numpy.ndarray's of identical shape as the data or None for missing periods
@@ -93,6 +94,8 @@ def makedatacube(listofdatarasters, listofflagrasters=None, minimumdatavalue=Non
                 numpydatacube[iIdx] = numpydataraster
             else:
                 numpydatacube[iIdx, :] = numpydataraster
+
+    if verbose: logging.info("makedatacube - resulting shape:%s"%(numpydatacube.shape,))
     #
     #
     #
@@ -152,23 +155,23 @@ def makelimitscube(numpydatacube, zelimitsrasterfunction):
 #
 #
 #    
-def flaglocalminima(numpydatacube, maxdipvalueornumpycube=None, maxdifvalueornumpycube=None, maxgap=None, maxpasses=1):
+def flaglocalminima(numpydatacube, maxdipvalueornumpycube=None, maxdifvalueornumpycube=None, maxgap=None, maxpasses=1, verbose=True):
     """
     """
-    return _flaglocalextrema(numpydatacube, maxdipvalueornumpycube, maxdifvalueornumpycube, maxgap=maxgap, maxpasses=maxpasses, doflagmaxima=False)
+    return _flaglocalextrema(numpydatacube, maxdipvalueornumpycube, maxdifvalueornumpycube, maxgap=maxgap, maxpasses=maxpasses, doflagmaxima=False, verbose=verbose)
 
 #
 #
 #    
-def flaglocalmaxima(numpydatacube, maxdipvalueornumpycube=None, maxdifvalueornumpycube=None, maxgap=None, maxpasses=1):
+def flaglocalmaxima(numpydatacube, maxdipvalueornumpycube=None, maxdifvalueornumpycube=None, maxgap=None, maxpasses=1, verbose=True):
     """
     """
-    return _flaglocalextrema(numpydatacube, maxdipvalueornumpycube, maxdifvalueornumpycube, maxgap=maxgap, maxpasses=maxpasses, doflagmaxima=True)
+    return _flaglocalextrema(numpydatacube, maxdipvalueornumpycube, maxdifvalueornumpycube, maxgap=maxgap, maxpasses=maxpasses, doflagmaxima=True, verbose=verbose)
 
 #
 #
 #
-def _flaglocalextrema(numpydatacube, maxdipvalueornumpycube, maxdifvalueornumpycube, maxgap=None, maxpasses=1, doflagmaxima=False):
+def _flaglocalextrema(numpydatacube, maxdipvalueornumpycube, maxdifvalueornumpycube, maxgap=None, maxpasses=1, doflagmaxima=False, verbose=True):
     """
     """
     #
@@ -304,10 +307,10 @@ def _flaglocalextrema(numpydatacube, maxdipvalueornumpycube, maxdifvalueornumpyc
 
         remainingnumberofvalues = numpy.sum(~numpy.isnan(numpydatacube))
         removednumberofvalues   = previousnumberofvalues - remainingnumberofvalues
-        print ("flaglocalextrema pass : %s removed %s values. %s values remaining. %s values removed in total" % (iteration+1, removednumberofvalues, remainingnumberofvalues, initialnumberofvalues - remainingnumberofvalues))
+        if verbose: logging.info("flaglocalextrema pass : %s removed %s values. %s values remaining. %s values removed in total" % (iteration+1, removednumberofvalues, remainingnumberofvalues, initialnumberofvalues - remainingnumberofvalues))
         previousnumberofvalues = remainingnumberofvalues
         if removednumberofvalues <= 0 and 1 < maxpasses:
-            print ("flaglocalextrema pass : %s - exits" % (iteration+1))
+            if verbose: logging.info("flaglocalextrema pass : %s - exits" % (iteration+1))
             break
 
     #
@@ -869,7 +872,7 @@ def whittaker_second_differences(lmbda, numpydatacube, numpyweightscube=None, mi
 
 
 #
-#    hack: act as if available data equidistant
+#    hack: act as if available data equidistant - do NOT use this; this is the emulation of a faulty implementation in the initial WIG (before may 2018)
 #
 def wig_whittaker(lmbda, numpydatacube, numpyweightscube=None, minimumdatavalue=None, maximumdatavalue=None, passes=1, dokeepmaxima=False):
     """
