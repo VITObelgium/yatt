@@ -8,7 +8,7 @@ import osgeo.gdal
 import matplotlib.pyplot
 import yatt.smooth
 import yutils.dutils
-import tests.testdata
+import demo.testdata
 
 #
 #
@@ -61,10 +61,10 @@ def doprofiles(inputdirectory, bmakepng):
         profile_avarage_pixels_fapar_perfect_data.append(None)
         iIdx += 1
 
-        ptFAPARpattern = tests.testdata.makefilenamepattern(date_yyyymmdd, "FAPAR_10M")
-        ptCLOUDpattern = tests.testdata.makefilenamepattern(date_yyyymmdd, "CLOUDMASK_10M")
-        ptSHADWpattern = tests.testdata.makefilenamepattern(date_yyyymmdd, "SHADOWMASK_10M")
-        ptSCENEpattern = tests.testdata.makefilenamepattern(date_yyyymmdd, "SCENECLASSIFICATION_10M")
+        ptFAPARpattern = demo.testdata.makefilenamepattern(date_yyyymmdd, "FAPAR_10M")
+        ptCLOUDpattern = demo.testdata.makefilenamepattern(date_yyyymmdd, "CLOUDMASK_10M")
+        ptSHADWpattern = demo.testdata.makefilenamepattern(date_yyyymmdd, "SHADOWMASK_10M")
+        ptSCENEpattern = demo.testdata.makefilenamepattern(date_yyyymmdd, "SCENECLASSIFICATION_10M")
 
         szFAPARfilenames =  [f for f in os.listdir(inputdirectory) if re.match(ptFAPARpattern, f)]
         szCLOUDfilenames =  [f for f in os.listdir(inputdirectory) if re.match(ptCLOUDpattern, f)]
@@ -97,7 +97,7 @@ def doprofiles(inputdirectory, bmakepng):
         #    - scene classification "low probability clouds" seems to have problems; some fields sometimes match exactly the low probability clouds? (hence, reluctantly we allow scenes 4,5,6 AND 7)
         #
         total_pixels_in_field            = fapar_numpyparray.size
-        total_pixels_as_nodata           = fapar_numpyparray[fapar_numpyparray > tests.testdata.maximumdatavalue].size
+        total_pixels_as_nodata           = fapar_numpyparray[fapar_numpyparray > demo.testdata.maximumdatavalue].size
         total_pixels_as_cloud            = cloud_numpyparray[cloud_numpyparray != 0].size
         total_pixels_as_shadw            = shadw_numpyparray[shadw_numpyparray != 0].size
         total_pixels_scene_nok           = scene_numpyparray[(scene_numpyparray >= 8) | (scene_numpyparray <= 3)].size
@@ -111,14 +111,14 @@ def doprofiles(inputdirectory, bmakepng):
         total_pixels_scene_cirrus        = scene_numpyparray[(scene_numpyparray == 10)].size
         total_pixels_scene_snow          = scene_numpyparray[(scene_numpyparray == 11)].size
 
-        total_pixels_fapar_data          = fapar_numpyparray[(fapar_numpyparray <= tests.testdata.maximumdatavalue)].size
-        total_pixels_fapar_unmasked_data = fapar_numpyparray[(fapar_numpyparray <= tests.testdata.maximumdatavalue) & (cloud_numpyparray == 0) & (shadw_numpyparray == 0)].size
+        total_pixels_fapar_data          = fapar_numpyparray[(fapar_numpyparray <= demo.testdata.maximumdatavalue)].size
+        total_pixels_fapar_unmasked_data = fapar_numpyparray[(fapar_numpyparray <= demo.testdata.maximumdatavalue) & (cloud_numpyparray == 0) & (shadw_numpyparray == 0)].size
         #
         #    actually, at the moment CLOUDMASK_10M and SHADOWMASK_10M are burned 
         #    in FAPAR_10M as no-data but who knows what happens in next version
         #
-        #total_pixels_fapar_perfect_data  = fapar_numpyparray[(fapar_numpyparray <= tests.testdata.maximumdatavalue) & (scene_numpyparray < 8) & (scene_numpyparray > 3)].size    
-        total_pixels_fapar_perfect_data  = fapar_numpyparray[(fapar_numpyparray <= tests.testdata.maximumdatavalue) & (cloud_numpyparray == 0) & (shadw_numpyparray == 0) & (scene_numpyparray < 8) & (scene_numpyparray > 3)].size    
+        #total_pixels_fapar_perfect_data  = fapar_numpyparray[(fapar_numpyparray <= demo.maximumdatavalue) & (scene_numpyparray < 8) & (scene_numpyparray > 3)].size    
+        total_pixels_fapar_perfect_data  = fapar_numpyparray[(fapar_numpyparray <= demo.testdata.maximumdatavalue) & (cloud_numpyparray == 0) & (shadw_numpyparray == 0) & (scene_numpyparray < 8) & (scene_numpyparray > 3)].size    
 
         if verbose:
             print (date_yyyymmdd)
@@ -154,7 +154,7 @@ def doprofiles(inputdirectory, bmakepng):
             #    all available pixel values in the fields
             #
             if 0 < total_pixels_fapar_data: #  and 0.80 <= (float(total_pixels_fapar_data) / float(total_pixels_in_field)) :
-                avarage_pixels_fapar_data = numpy.average(fapar_numpyparray[(fapar_numpyparray <= tests.testdata.maximumdatavalue)])
+                avarage_pixels_fapar_data = numpy.average(fapar_numpyparray[(fapar_numpyparray <= demo.testdata.maximumdatavalue)])
                 profile_avarage_pixels_fapar_data[iIdx] = avarage_pixels_fapar_data
                 size_profile_avarage_pixels_fapar_data +=1
 
@@ -162,8 +162,8 @@ def doprofiles(inputdirectory, bmakepng):
             #    only perfect pixel values in case field has 80% perfect pixels 
             #
             if 0 < total_pixels_fapar_perfect_data and 0.80 <= (float(total_pixels_fapar_perfect_data) / float(total_pixels_in_field)) :
-                avarage_pixels_fapar_perfect_data = numpy.average(fapar_numpyparray[(fapar_numpyparray <= tests.testdata.maximumdatavalue) & (cloud_numpyparray == 0) & (shadw_numpyparray == 0) & (scene_numpyparray < 8) & (scene_numpyparray > 3)])
-                #avarage_pixels_fapar_perfect_data = numpy.average(fapar_numpyparray[(fapar_numpyparray <= tests.testdata.maximumdatavalue) & (scene_numpyparray < 8) & (scene_numpyparray > 3)])
+                avarage_pixels_fapar_perfect_data = numpy.average(fapar_numpyparray[(fapar_numpyparray <= demo.testdata.maximumdatavalue) & (cloud_numpyparray == 0) & (shadw_numpyparray == 0) & (scene_numpyparray < 8) & (scene_numpyparray > 3)])
+                #avarage_pixels_fapar_perfect_data = numpy.average(fapar_numpyparray[(fapar_numpyparray <= demo.maximumdatavalue) & (scene_numpyparray < 8) & (scene_numpyparray > 3)])
                 profile_avarage_pixels_fapar_perfect_data[iIdx] = avarage_pixels_fapar_perfect_data
                 size_profile_avarage_pixels_fapar_perfect_data +=1
 
@@ -185,12 +185,12 @@ def doprofiles(inputdirectory, bmakepng):
     #
     #
     #
-    all_raw_data_datacube         = yatt.smooth.makedatacube(profile_avarage_pixels_fapar_data, minimumdatavalue=tests.testdata.minimumdatavalue, maximumdatavalue=tests.testdata.maximumdatavalue)
-    pft_raw_data_datacube         = yatt.smooth.makedatacube(profile_avarage_pixels_fapar_perfect_data, minimumdatavalue=tests.testdata.minimumdatavalue, maximumdatavalue=tests.testdata.maximumdatavalue)
+    all_raw_data_datacube         = yatt.smooth.makedatacube(profile_avarage_pixels_fapar_data, minimumdatavalue=demo.testdata.minimumdatavalue, maximumdatavalue=demo.testdata.maximumdatavalue)
+    pft_raw_data_datacube         = yatt.smooth.makedatacube(profile_avarage_pixels_fapar_perfect_data, minimumdatavalue=demo.testdata.minimumdatavalue, maximumdatavalue=demo.testdata.maximumdatavalue)
     all_outliers_removed_datacube = yatt.smooth.flaglocalminima(numpy.copy(all_raw_data_datacube), maxdip, maxdif, maxgap=maxgap, maxpasses=extremapasses)
     pft_outliers_removed_datacube = yatt.smooth.flaglocalminima(numpy.copy(pft_raw_data_datacube), maxdip, maxdif, maxgap=maxgap, maxpasses=extremapasses)
-    all_outliers_removed_whitcube = yatt.smooth.whittaker_second_differences(lmbda, all_outliers_removed_datacube, None, minimumdatavalue=tests.testdata.minimumdatavalue, maximumdatavalue=tests.testdata.maximumdatavalue, passes=passes, dokeepmaxima=dokeepmaxima)
-    pft_outliers_removed_whitcube = yatt.smooth.whittaker_second_differences(lmbda, pft_outliers_removed_datacube, None, minimumdatavalue=tests.testdata.minimumdatavalue, maximumdatavalue=tests.testdata.maximumdatavalue, passes=passes, dokeepmaxima=dokeepmaxima)
+    all_outliers_removed_whitcube = yatt.smooth.whittaker_second_differences(lmbda, all_outliers_removed_datacube, None, minimumdatavalue=demo.testdata.minimumdatavalue, maximumdatavalue=demo.testdata.maximumdatavalue, passes=passes, dokeepmaxima=dokeepmaxima)
+    pft_outliers_removed_whitcube = yatt.smooth.whittaker_second_differences(lmbda, pft_outliers_removed_datacube, None, minimumdatavalue=demo.testdata.minimumdatavalue, maximumdatavalue=demo.testdata.maximumdatavalue, passes=passes, dokeepmaxima=dokeepmaxima)
 
     #
     #    monthly composites
@@ -338,7 +338,7 @@ def doprofiles(inputdirectory, bmakepng):
         matplotlib.pyplot.subplots_adjust(wspace=0.1, hspace=0.4)
         matplotlib.pyplot.suptitle("%s - Monthly composite - all observations vs 'good' observations" % (os.path.basename(inputdirectory)))
         if bmakepng:
-            matplotlib.pyplot.savefig(os.path.join(tests.testdata.sztestdatarootdirectory, os.path.basename(inputdirectory) + "_S30_composite" + ".png"), dpi=300)
+            matplotlib.pyplot.savefig(os.path.join(demo.testdata.sztestdatarootdirectory, os.path.basename(inputdirectory) + "_S30_composite" + ".png"), dpi=300)
         else :
             matplotlib.pyplot.show()
         matplotlib.pyplot.close('all')        
@@ -352,6 +352,6 @@ if __name__ == '__main__':
     #
     #
     bmakepng = False
-    doprofiles( os.path.join(tests.testdata.sztestdatarootdirectory, "2-AVy-ofdls9bS8_4_3GLH"  ), bmakepng)
-    doprofiles( os.path.join(tests.testdata.sztestdatarootdirectory, "29-AV0TcoCXZjsFpiOBA3gL" ), bmakepng)
-    doprofiles( os.path.join(tests.testdata.sztestdatarootdirectory, "190-AVzO_BSZZjsFpiOBRYcR"), bmakepng)
+    doprofiles( os.path.join(demo.testdata.sztestdatarootdirectory, "2-AVy-ofdls9bS8_4_3GLH"  ), bmakepng)
+    doprofiles( os.path.join(demo.testdata.sztestdatarootdirectory, "29-AV0TcoCXZjsFpiOBA3gL" ), bmakepng)
+    doprofiles( os.path.join(demo.testdata.sztestdatarootdirectory, "190-AVzO_BSZZjsFpiOBRYcR"), bmakepng)

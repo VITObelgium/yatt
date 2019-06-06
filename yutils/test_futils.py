@@ -11,7 +11,7 @@ import yutils.futils
 #
 #
 #
-verbose = False
+verbose = True
 level   = logging.DEBUG #logging.ERROR #logging.DEBUG #logging.ERROR #
 
 #
@@ -21,7 +21,18 @@ class Test(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-
+        #
+        #    root ---+--- somedir ---+--- somefile.txt
+        #            |               +--- otherfile_20170101_someversion.txt
+        #            |               +--- otherfile_...     _someversion.txt
+        #            |               +--- otherfile_20171231_someversion.txt
+        #            |               +--- (nonefile.txt)
+        #            |
+        #            +--- othrdir
+        #            |
+        #            +--- (nonedir)
+        #
+        #
         cls.sz_test_rootdir   = tempfile.mkdtemp()
         cls.sz_some_dir_name  = 'somedir'
         cls.sz_othr_dir_name  = 'othrdir'
@@ -35,8 +46,8 @@ class Test(unittest.TestCase):
         cls.sz_some_file      = os.path.join(cls.sz_some_dir, cls.sz_some_file_name)
         cls.sz_none_file      = os.path.join(cls.sz_some_dir, cls.sz_none_file_name)
 
-        os.mkdir(cls.sz_some_dir)
-        os.mkdir(cls.sz_othr_dir)
+        os.mkdir(cls.sz_some_dir) # existing root/somedir
+        os.mkdir(cls.sz_othr_dir) # existing root/othrdir
 
         def makefile(szfile):
             f = open(szfile, 'w')
@@ -44,7 +55,7 @@ class Test(unittest.TestCase):
             f.write('\nThe owls are not what they seem')
             f.close()
 
-        makefile(cls.sz_some_file)
+        makefile(cls.sz_some_file) # existing file root/somedir/somefile.txt
 
         for szyyyymmdd in ['20170101', '20170102', '20170103', '20171231']:
             makefile(os.path.join(cls.sz_some_dir, 'otherfile_' + szyyyymmdd + '_someversion.txt'))
@@ -59,10 +70,10 @@ class Test(unittest.TestCase):
         #
         #    sanePath
         #
-        self.assertIsNotNone(yutils.futils.sanePath(Test.sz_some_dir,  verbose=verbose))
-        self.assertIsNotNone(yutils.futils.sanePath(Test.sz_none_dir,  verbose=verbose))
-        self.assertIsNotNone(yutils.futils.sanePath(Test.sz_some_file, verbose=verbose))
-        self.assertIsNotNone(yutils.futils.sanePath(Test.sz_none_file, verbose=verbose))
+        self.assertIsNotNone(yutils.futils.sanePath(Test.sz_some_dir,  verbose=verbose)) # sane existing dir
+        self.assertIsNotNone(yutils.futils.sanePath(Test.sz_none_dir,  verbose=verbose)) # sane non-existing dir
+        self.assertIsNotNone(yutils.futils.sanePath(Test.sz_some_file, verbose=verbose)) # sane existing file
+        self.assertIsNotNone(yutils.futils.sanePath(Test.sz_none_file, verbose=verbose)) # sane non-existing file
         #
         #    saneExistingPath
         #
@@ -127,6 +138,25 @@ class Test(unittest.TestCase):
         self.assertIsNone(yutils.futils.parentFromExistingDirectory(Test.sz_none_file, verbose=verbose))
 
     #@unittest.case.skip
+    def test_getDir(self):
+        #
+        #    getDir
+        #
+        self.assertIsNotNone(yutils.futils.getDir(Test.sz_some_dir,  bmayexist = True,  verbose=verbose)) # sane existing dir
+        self.assertIsNone   (yutils.futils.getDir(Test.sz_some_file, bmayexist = True,  verbose=verbose)) # sane existing file
+        self.assertIsNone   (yutils.futils.getDir(Test.sz_some_dir,  bmayexist = False, verbose=verbose)) # sane existing dir
+        self.assertIsNotNone(yutils.futils.getDir(Test.sz_none_dir,  bmayexist = True,  verbose=verbose)) # sane non-existing dir => directory gets created
+        self.assertIsNone   (yutils.futils.getDir(Test.sz_none_dir,  bmayexist = False, verbose=verbose)) # sane existing dir
+        shutil.rmtree(Test.sz_none_dir)
+
+        self.assertIsNotNone(yutils.futils.getDirPath(Test.sz_some_dir,  bmayexist = True,  verbose=verbose)) # sane existing dir
+        self.assertIsNone   (yutils.futils.getDirPath(Test.sz_some_file, bmayexist = True,  verbose=verbose)) # sane existing file
+        self.assertIsNone   (yutils.futils.getDirPath(Test.sz_some_dir,  bmayexist = False, verbose=verbose)) # sane existing dir
+        self.assertIsNotNone(yutils.futils.getDirPath(Test.sz_none_dir,  bmayexist = True,  verbose=verbose)) # sane non-existing dir => directory gets created
+        self.assertIsNone   (yutils.futils.getDirPath(Test.sz_none_dir,  bmayexist = False, verbose=verbose)) # sane existing dir
+        shutil.rmtree(Test.sz_none_dir)
+
+    #@unittest.case.skip
     def test_gFilesInDir(self):
         #
         #    gFilesInDir
@@ -153,7 +183,6 @@ class Test(unittest.TestCase):
         self.assertCountEqual( list(yutils.futils.ggfFilesInDirs(lambda _:True,                [Test.sz_some_dir],                   verbose=verbose)),  list(yutils.futils.gFilesInDir(Test.sz_some_dir, verbose=verbose)))
         self.assertCountEqual( list(dict.fromkeys(yutils.futils.ggfFilesInDirs(lambda _:True,  [Test.sz_some_dir, Test.sz_some_dir], verbose=verbose))), list(yutils.futils.gFilesInDir(Test.sz_some_dir, verbose=verbose)))
         self.assertCountEqual( list(dict.fromkeys(yutils.futils.ggfFilesInDirs(lambda _:False, [Test.sz_some_dir, Test.sz_some_dir], verbose=verbose))), [])
-
 
     #@unittest.case.skip
     def test_gDirsInDir(self):

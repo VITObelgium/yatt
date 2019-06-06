@@ -8,7 +8,7 @@ import osgeo.gdal
 import matplotlib.pyplot
 import yatt.smooth
 import yutils.dutils
-import tests.testdata
+import demo.testdata
 
 #
 #
@@ -57,10 +57,10 @@ def dorasters(inputdirectory, bdoperfectpixels = False, bmakepng = False, bmakee
         zerasters.append(None)
         iIdx += 1
 
-        ptFAPARpattern = tests.testdata.makefilenamepattern(date_yyyymmdd, "FAPAR_10M")
-        ptCLOUDpattern = tests.testdata.makefilenamepattern(date_yyyymmdd, "CLOUDMASK_10M")
-        ptSHADWpattern = tests.testdata.makefilenamepattern(date_yyyymmdd, "SHADOWMASK_10M")
-        ptSCENEpattern = tests.testdata.makefilenamepattern(date_yyyymmdd, "SCENECLASSIFICATION_10M")
+        ptFAPARpattern = demo.testdata.makefilenamepattern(date_yyyymmdd, "FAPAR_10M")
+        ptCLOUDpattern = demo.testdata.makefilenamepattern(date_yyyymmdd, "CLOUDMASK_10M")
+        ptSHADWpattern = demo.testdata.makefilenamepattern(date_yyyymmdd, "SHADOWMASK_10M")
+        ptSCENEpattern = demo.testdata.makefilenamepattern(date_yyyymmdd, "SCENECLASSIFICATION_10M")
 
         szFAPARfilenames =  [f for f in os.listdir(inputdirectory) if re.match(ptFAPARpattern, f)]
         szCLOUDfilenames =  [f for f in os.listdir(inputdirectory) if re.match(ptCLOUDpattern, f)]
@@ -104,20 +104,20 @@ def dorasters(inputdirectory, bdoperfectpixels = False, bmakepng = False, bmakee
         total_pixels_in_roi              = fapar_numpyparray.size
         total_pixels_as_cloud            = cloud_numpyparray[cloud_numpyparray != 0].size
         total_pixels_as_shadw            = shadw_numpyparray[shadw_numpyparray != 0].size
-        total_pixels_as_nodata           = fapar_numpyparray[fapar_numpyparray > tests.testdata.maximumdatavalue].size
+        total_pixels_as_nodata           = fapar_numpyparray[fapar_numpyparray > demo.testdata.maximumdatavalue].size
 
-        total_pixels_fapar_data          = fapar_numpyparray[(fapar_numpyparray <= tests.testdata.maximumdatavalue)].size
-        total_pixels_fapar_unmasked_data = fapar_numpyparray[(fapar_numpyparray <= tests.testdata.maximumdatavalue) & (cloud_numpyparray == 0) & (shadw_numpyparray == 0)].size
+        total_pixels_fapar_data          = fapar_numpyparray[(fapar_numpyparray <= demo.testdata.maximumdatavalue)].size
+        total_pixels_fapar_unmasked_data = fapar_numpyparray[(fapar_numpyparray <= demo.testdata.maximumdatavalue) & (cloud_numpyparray == 0) & (shadw_numpyparray == 0)].size
         #
         #    we'd prefer (scene_numpyparray < 7) but we'll allow 'low probability' clouds,
         #    since in some cases they seem to match our field exactly, which seems to be some bug
         #
-        #total_pixels_fapar_perfect_data  = fapar_numpyparray[(fapar_numpyparray <= tests.testdata.maximumdatavalue) & (scene_numpyparray < 8) & (scene_numpyparray > 3)].size    
+        #total_pixels_fapar_perfect_data  = fapar_numpyparray[(fapar_numpyparray <= demo.testdata.maximumdatavalue) & (scene_numpyparray < 8) & (scene_numpyparray > 3)].size    
         #
         #    actually, at the moment CLOUDMASK_10M and SHADOWMASK_10M are burned 
         #    in FAPAR_10M as no-data but who knows what happens in next version
         #
-        total_pixels_fapar_perfect_data  = fapar_numpyparray[(fapar_numpyparray <= tests.testdata.maximumdatavalue) & (cloud_numpyparray == 0) & (shadw_numpyparray == 0) & (scene_numpyparray < 8) & (scene_numpyparray > 3)].size    
+        total_pixels_fapar_perfect_data  = fapar_numpyparray[(fapar_numpyparray <= demo.testdata.maximumdatavalue) & (cloud_numpyparray == 0) & (shadw_numpyparray == 0) & (scene_numpyparray < 8) & (scene_numpyparray > 3)].size    
         #
         #
         #
@@ -131,7 +131,7 @@ def dorasters(inputdirectory, bdoperfectpixels = False, bmakepng = False, bmakee
 
                 zeraster = numpy.copy(fapar_numpyparray)
 
-                zeraster[ (fapar_numpyparray > tests.testdata.maximumdatavalue) | (cloud_numpyparray ==1) | (shadw_numpyparray==1) | (scene_numpyparray >= 8) | (scene_numpyparray <= 3)] = tests.testdata.nodatavalue
+                zeraster[ (fapar_numpyparray > demo.testdata.maximumdatavalue) | (cloud_numpyparray ==1) | (shadw_numpyparray==1) | (scene_numpyparray >= 8) | (scene_numpyparray <= 3)] = demo.testdata.nodatavalue
                 zerasters[iIdx] = zeraster
         else:
             #
@@ -143,7 +143,7 @@ def dorasters(inputdirectory, bdoperfectpixels = False, bmakepng = False, bmakee
 
                 zeraster = numpy.copy(fapar_numpyparray)
 
-                zeraster[ (fapar_numpyparray > tests.testdata.maximumdatavalue) | (cloud_numpyparray ==1) | (shadw_numpyparray==1)] = tests.testdata.nodatavalue
+                zeraster[ (fapar_numpyparray > demo.testdata.maximumdatavalue) | (cloud_numpyparray ==1) | (shadw_numpyparray==1)] = demo.testdata.nodatavalue
                 zerasters[iIdx] = zeraster
 
         if doverbose:
@@ -193,9 +193,9 @@ def dorasters(inputdirectory, bdoperfectpixels = False, bmakepng = False, bmakee
     #
     #    raw rasters and smoothed rasters
     #
-    raw_data_datacube         = yatt.smooth.makedatacube(zerasters, minimumdatavalue=tests.testdata.minimumdatavalue, maximumdatavalue=tests.testdata.maximumdatavalue)
+    raw_data_datacube         = yatt.smooth.makedatacube(zerasters, minimumdatavalue=demo.testdata.minimumdatavalue, maximumdatavalue=demo.testdata.maximumdatavalue)
     outliers_removed_datacube = yatt.smooth.flaglocalminima(numpy.copy(raw_data_datacube), maxdip, maxdif, maxgap=maxgap, maxpasses=extremapasses)
-    outliers_removed_whitcube = yatt.smooth.whittaker_second_differences(lmbda, outliers_removed_datacube, None, minimumdatavalue=tests.testdata.minimumdatavalue, maximumdatavalue=tests.testdata.maximumdatavalue, passes=passes, dokeepmaxima=dokeepmaxima)
+    outliers_removed_whitcube = yatt.smooth.whittaker_second_differences(lmbda, outliers_removed_datacube, None, minimumdatavalue=demo.testdata.minimumdatavalue, maximumdatavalue=demo.testdata.maximumdatavalue, passes=passes, dokeepmaxima=dokeepmaxima)
 
     #
     #    monthly composites
@@ -271,18 +271,18 @@ def dorasters(inputdirectory, bdoperfectpixels = False, bmakepng = False, bmakee
 
             if not (~numpy.isnan(zeresults[iIdx])).any(): continue
 
-            smoothedraster[:] = tests.testdata.nodatavalue
+            smoothedraster[:] = demo.testdata.nodatavalue
             notnanraster[:] = ~numpy.isnan(zeresults[iIdx])
-            smoothedraster[notnanraster] = numpy.where(zeresults[iIdx][notnanraster]>tests.testdata.maximumdatavalue, tests.testdata.maximumdatavalue, numpy.rint(zeresults[iIdx][notnanraster])) 
+            smoothedraster[notnanraster] = numpy.where(zeresults[iIdx][notnanraster]>demo.testdata.maximumdatavalue, demo.testdata.maximumdatavalue, numpy.rint(zeresults[iIdx][notnanraster])) 
 
-            envi_name = os.path.join(tests.testdata.sztestdatarootdirectory,os.path.basename(inputdirectory) + "_S30_composite_%s.img"%(zedates[iIdx]))
+            envi_name = os.path.join(demo.testdata.sztestdatarootdirectory,os.path.basename(inputdirectory) + "_S30_composite_%s.img"%(zedates[iIdx]))
             envi_gdaldataset = osgeo.gdal.GetDriverByName("ENVI").Create(envi_name, ref_rasterxsize, ref_rasterysize, 1, osgeo.gdalconst.GDT_Byte)
             envi_gdaldataset.SetGeoTransform(ref_geotransform)
             envi_gdaldataset.SetProjection(ref_projection)
             envi_gdaldataset.GetRasterBand(1).WriteArray(smoothedraster)
 
             if do_envi_png :
-                png_name= os.path.join(tests.testdata.sztestdatarootdirectory,os.path.basename(inputdirectory) + "_S30_composite_%s.png"%(zedates[iIdx]))
+                png_name= os.path.join(demo.testdata.sztestdatarootdirectory,os.path.basename(inputdirectory) + "_S30_composite_%s.png"%(zedates[iIdx]))
                 osgeo.gdal.GetDriverByName('PNG').CreateCopy(png_name, envi_gdaldataset)
 
     #
@@ -307,31 +307,31 @@ def dorasters(inputdirectory, bdoperfectpixels = False, bmakepng = False, bmakee
         #
         #
         #
-        raw_max_raster[:] = tests.testdata.nodatavalue
+        raw_max_raster[:] = demo.testdata.nodatavalue
         raw_max_notnan[:] =  ~numpy.isnan(raw_compostitemaximum[iIdx])
-        raw_max_raster[raw_max_notnan] = numpy.where(raw_compostitemaximum[iIdx][raw_max_notnan]>tests.testdata.maximumdatavalue, tests.testdata.maximumdatavalue, numpy.rint(raw_compostitemaximum[iIdx][raw_max_notnan]))
+        raw_max_raster[raw_max_notnan] = numpy.where(raw_compostitemaximum[iIdx][raw_max_notnan]>demo.testdata.maximumdatavalue, demo.testdata.maximumdatavalue, numpy.rint(raw_compostitemaximum[iIdx][raw_max_notnan]))
 
-        raw_avg_raster[:] = tests.testdata.nodatavalue
+        raw_avg_raster[:] = demo.testdata.nodatavalue
         raw_avg_notnan[:] =  ~numpy.isnan(raw_compostiteaverage[iIdx])
-        raw_avg_raster[raw_avg_notnan] = numpy.where(raw_compostiteaverage[iIdx][raw_avg_notnan]>tests.testdata.maximumdatavalue, tests.testdata.maximumdatavalue, numpy.rint(raw_compostiteaverage[iIdx][raw_avg_notnan]))
+        raw_avg_raster[raw_avg_notnan] = numpy.where(raw_compostiteaverage[iIdx][raw_avg_notnan]>demo.testdata.maximumdatavalue, demo.testdata.maximumdatavalue, numpy.rint(raw_compostiteaverage[iIdx][raw_avg_notnan]))
 
-        raw_min_raster[:] = tests.testdata.nodatavalue
+        raw_min_raster[:] = demo.testdata.nodatavalue
         raw_min_notnan[:] =  ~numpy.isnan(raw_compostiteminimum[iIdx])
-        raw_min_raster[raw_min_notnan] = numpy.where(raw_compostiteminimum[iIdx][raw_min_notnan]>tests.testdata.maximumdatavalue, tests.testdata.maximumdatavalue, numpy.rint(raw_compostiteminimum[iIdx][raw_min_notnan]))
+        raw_min_raster[raw_min_notnan] = numpy.where(raw_compostiteminimum[iIdx][raw_min_notnan]>demo.testdata.maximumdatavalue, demo.testdata.maximumdatavalue, numpy.rint(raw_compostiteminimum[iIdx][raw_min_notnan]))
         #
         #    smoothed raster has (float) values  0-200 + nan's 
         #
-        smt_max_raster[:] = tests.testdata.nodatavalue
+        smt_max_raster[:] = demo.testdata.nodatavalue
         smt_max_notnan[:] =  ~numpy.isnan(smt_compostitemaximum[iIdx])
-        smt_max_raster[smt_max_notnan] = numpy.where(smt_compostitemaximum[iIdx][smt_max_notnan]>tests.testdata.maximumdatavalue, tests.testdata.maximumdatavalue, numpy.rint(smt_compostitemaximum[iIdx][smt_max_notnan]))
+        smt_max_raster[smt_max_notnan] = numpy.where(smt_compostitemaximum[iIdx][smt_max_notnan]>demo.testdata.maximumdatavalue, demo.testdata.maximumdatavalue, numpy.rint(smt_compostitemaximum[iIdx][smt_max_notnan]))
 
-        smt_avg_raster[:] = tests.testdata.nodatavalue
+        smt_avg_raster[:] = demo.testdata.nodatavalue
         smt_avg_notnan[:] =  ~numpy.isnan(smt_compostiteaverage[iIdx])
-        smt_avg_raster[smt_avg_notnan] = numpy.where(smt_compostiteaverage[iIdx][smt_avg_notnan]>tests.testdata.maximumdatavalue, tests.testdata.maximumdatavalue, numpy.rint(smt_compostiteaverage[iIdx][smt_avg_notnan]))
+        smt_avg_raster[smt_avg_notnan] = numpy.where(smt_compostiteaverage[iIdx][smt_avg_notnan]>demo.testdata.maximumdatavalue, demo.testdata.maximumdatavalue, numpy.rint(smt_compostiteaverage[iIdx][smt_avg_notnan]))
 
-        smt_min_raster[:] = tests.testdata.nodatavalue
+        smt_min_raster[:] = demo.testdata.nodatavalue
         smt_min_notnan[:] =  ~numpy.isnan(smt_compostiteminimum[iIdx])
-        smt_min_raster[smt_min_notnan] = numpy.where(smt_compostiteminimum[iIdx][smt_min_notnan]>tests.testdata.maximumdatavalue, tests.testdata.maximumdatavalue, numpy.rint(smt_compostiteminimum[iIdx][smt_min_notnan]))
+        smt_min_raster[smt_min_notnan] = numpy.where(smt_compostiteminimum[iIdx][smt_min_notnan]>demo.testdata.maximumdatavalue, demo.testdata.maximumdatavalue, numpy.rint(smt_compostiteminimum[iIdx][smt_min_notnan]))
         #
         #
         #
@@ -345,30 +345,30 @@ def dorasters(inputdirectory, bdoperfectpixels = False, bmakepng = False, bmakee
 
 
         row = 0; col = 0
-        subplots[row, col].imshow(raw_max_raster.astype(float), norm=tests.testdata.faparnorm, cmap=tests.testdata.faparcolormap)
+        subplots[row, col].imshow(raw_max_raster.astype(float), norm=demo.testdata.faparnorm, cmap=demo.testdata.faparcolormap)
         subplots[row, col].set_title("raw data - max composite")
         row = 0; col = 1
-        subplots[row, col].imshow(raw_avg_raster.astype(float), norm=tests.testdata.faparnorm, cmap=tests.testdata.faparcolormap)
+        subplots[row, col].imshow(raw_avg_raster.astype(float), norm=demo.testdata.faparnorm, cmap=demo.testdata.faparcolormap)
         subplots[row, col].set_title("raw data - avg composite")
         row = 0; col = 2
-        subplots[row, col].imshow(raw_min_raster.astype(float), norm=tests.testdata.faparnorm, cmap=tests.testdata.faparcolormap)
+        subplots[row, col].imshow(raw_min_raster.astype(float), norm=demo.testdata.faparnorm, cmap=demo.testdata.faparcolormap)
         subplots[row, col].set_title("raw data - min composite")
 
         row = 1; col = 0
-        subplots[row, col].imshow(smt_max_raster.astype(float), norm=tests.testdata.faparnorm, cmap=tests.testdata.faparcolormap)
+        subplots[row, col].imshow(smt_max_raster.astype(float), norm=demo.testdata.faparnorm, cmap=demo.testdata.faparcolormap)
         subplots[row, col].set_title("smoothed data - max composite")
         row = 1; col = 1
-        subplots[row, col].imshow(smt_avg_raster.astype(float), norm=tests.testdata.faparnorm, cmap=tests.testdata.faparcolormap)
+        subplots[row, col].imshow(smt_avg_raster.astype(float), norm=demo.testdata.faparnorm, cmap=demo.testdata.faparcolormap)
         subplots[row, col].set_title("smoothed data - avg composite")
         row = 1; col = 2
-        subplots[row, col].imshow(smt_min_raster.astype(float), norm=tests.testdata.faparnorm, cmap=tests.testdata.faparcolormap)
+        subplots[row, col].imshow(smt_min_raster.astype(float), norm=demo.testdata.faparnorm, cmap=demo.testdata.faparcolormap)
         subplots[row, col].set_title("smoothed data - min composite")
 
 
         matplotlib.pyplot.suptitle("Field: %s  - S30: %s" % (os.path.basename(inputdirectory), zedates[iIdx]) )
  
         if bmakepng:
-            matplotlib.pyplot.savefig(os.path.join(tests.testdata.sztestdatarootdirectory, os.path.basename(inputdirectory) + "_S30_Raster_%s.png"%(compostitedates[iIdx])), dpi=300)
+            matplotlib.pyplot.savefig(os.path.join(demo.testdata.sztestdatarootdirectory, os.path.basename(inputdirectory) + "_S30_Raster_%s.png"%(compostitedates[iIdx])), dpi=300)
         else:
             matplotlib.pyplot.show()
 
@@ -385,6 +385,6 @@ if __name__ == '__main__':
     bmakepng         = False
     bmakeenvi        = False
 
-    dorasters( os.path.join(tests.testdata.sztestdatarootdirectory, "2-AVy-ofdls9bS8_4_3GLH"  ), bdoperfectpixels, bmakepng, bmakeenvi)
-    dorasters( os.path.join(tests.testdata.sztestdatarootdirectory, "29-AV0TcoCXZjsFpiOBA3gL" ), bdoperfectpixels, bmakepng, bmakeenvi)
-    dorasters( os.path.join(tests.testdata.sztestdatarootdirectory, "190-AVzO_BSZZjsFpiOBRYcR"), bdoperfectpixels, bmakepng, bmakeenvi)
+    dorasters( os.path.join(demo.testdata.sztestdatarootdirectory, "2-AVy-ofdls9bS8_4_3GLH"  ), bdoperfectpixels, bmakepng, bmakeenvi)
+    dorasters( os.path.join(demo.testdata.sztestdatarootdirectory, "29-AV0TcoCXZjsFpiOBA3gL" ), bdoperfectpixels, bmakepng, bmakeenvi)
+    dorasters( os.path.join(demo.testdata.sztestdatarootdirectory, "190-AVzO_BSZZjsFpiOBRYcR"), bdoperfectpixels, bmakepng, bmakeenvi)

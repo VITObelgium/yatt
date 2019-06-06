@@ -10,7 +10,7 @@ import matplotlib.pyplot
 import yatt.smooth
 import yatt.mask
 import yutils.dutils
-import tests.testdata
+import demo.testdata
 
 #
 #
@@ -46,10 +46,10 @@ def dorasters(inputdirectory, bmakepng = False, bmakeenvi = False, busemask = Fa
         zefapars.append(None)
         iIdx += 1
 
-        ptFAPARpattern = tests.testdata.makefilenamepattern(date_yyyymmdd, "FAPAR_10M")
-        ptCLOUDpattern = tests.testdata.makefilenamepattern(date_yyyymmdd, "CLOUDMASK_10M")
-        ptSHADWpattern = tests.testdata.makefilenamepattern(date_yyyymmdd, "SHADOWMASK_10M")
-        ptSCENEpattern = tests.testdata.makefilenamepattern(date_yyyymmdd, "SCENECLASSIFICATION_10M")
+        ptFAPARpattern = demo.testdata.makefilenamepattern(date_yyyymmdd, "FAPAR_10M")
+        ptCLOUDpattern = demo.testdata.makefilenamepattern(date_yyyymmdd, "CLOUDMASK_10M")
+        ptSHADWpattern = demo.testdata.makefilenamepattern(date_yyyymmdd, "SHADOWMASK_10M")
+        ptSCENEpattern = demo.testdata.makefilenamepattern(date_yyyymmdd, "SCENECLASSIFICATION_10M")
 
         szFAPARfilenames =  [f for f in os.listdir(inputdirectory) if re.match(ptFAPARpattern, f)]
         szCLOUDfilenames =  [f for f in os.listdir(inputdirectory) if re.match(ptCLOUDpattern, f)]
@@ -105,25 +105,25 @@ def dorasters(inputdirectory, bmakepng = False, bmakeenvi = False, busemask = Fa
             total_pixels_in_roi              = fapar_numpyparray.size
             total_pixels_as_cloud            = cloud_numpyparray[cloud_numpyparray != 0].size
             total_pixels_as_shadw            = shadw_numpyparray[shadw_numpyparray != 0].size
-            total_pixels_as_nodata           = fapar_numpyparray[fapar_numpyparray > tests.testdata.maximumdatavalue].size
+            total_pixels_as_nodata           = fapar_numpyparray[fapar_numpyparray > demo.testdata.maximumdatavalue].size
     
-            total_pixels_fapar_data          = fapar_numpyparray[(fapar_numpyparray <= tests.testdata.maximumdatavalue)].size
-            total_pixels_fapar_unmasked_data = fapar_numpyparray[(fapar_numpyparray <= tests.testdata.maximumdatavalue) & (cloud_numpyparray == 0) & (shadw_numpyparray == 0)].size
+            total_pixels_fapar_data          = fapar_numpyparray[(fapar_numpyparray <= demo.testdata.maximumdatavalue)].size
+            total_pixels_fapar_unmasked_data = fapar_numpyparray[(fapar_numpyparray <= demo.testdata.maximumdatavalue) & (cloud_numpyparray == 0) & (shadw_numpyparray == 0)].size
             #
             #    we'd prefer (scene_numpyparray < 7) but we'll allow 'low probability' clouds,
             #    since in some cases they seem to match our field exactly, which seems to be some bug
             #
-            #total_pixels_fapar_perfect_data  = fapar_numpyparray[(fapar_numpyparray <= tests.testdata.maximumdatavalue) & (scene_numpyparray < 8) & (scene_numpyparray > 3)].size    
+            #total_pixels_fapar_perfect_data  = fapar_numpyparray[(fapar_numpyparray <= demo.testdata.maximumdatavalue) & (scene_numpyparray < 8) & (scene_numpyparray > 3)].size    
             #
             #    actually, at the moment CLOUDMASK_10M and SHADOWMASK_10M are burned 
             #    in FAPAR_10M as no-data but who knows what happens in next version
             #
-            total_pixels_fapar_perfect_data  = fapar_numpyparray[(fapar_numpyparray <= tests.testdata.maximumdatavalue) & (cloud_numpyparray == 0) & (shadw_numpyparray == 0) & (scene_numpyparray < 8) & (scene_numpyparray > 3)].size    
+            total_pixels_fapar_perfect_data  = fapar_numpyparray[(fapar_numpyparray <= demo.testdata.maximumdatavalue) & (cloud_numpyparray == 0) & (shadw_numpyparray == 0) & (scene_numpyparray < 8) & (scene_numpyparray > 3)].size    
             #
             #
             #
             zeraster = numpy.copy(fapar_numpyparray)
-            zeraster[ (fapar_numpyparray > tests.testdata.maximumdatavalue) | (cloud_numpyparray ==1) | (shadw_numpyparray==1) | (scene_numpyparray >= 8) | (scene_numpyparray <= 3)] = tests.testdata.nodatavalue
+            zeraster[ (fapar_numpyparray > demo.testdata.maximumdatavalue) | (cloud_numpyparray ==1) | (shadw_numpyparray==1) | (scene_numpyparray >= 8) | (scene_numpyparray <= 3)] = demo.testdata.nodatavalue
             zerasters[iIdx] = zeraster
 
             if 0 < total_pixels_fapar_perfect_data:
@@ -156,7 +156,7 @@ def dorasters(inputdirectory, bmakepng = False, bmakeenvi = False, busemask = Fa
             zerasters[iIdx] = yatt.mask.Convolve2dClassificationMask([
                 yatt.mask.Convolve2dClassificationMask.ConditionSpec(3,  [4, 5, 7],     -0.90),
                 yatt.mask.Convolve2dClassificationMask.ConditionSpec(11, [3, 8, 9, 10],  0.05)
-                ]).mask(fapar_numpyparray, scene_numpyparray, maskedvalue=tests.testdata.nodatavalue, copy=True)
+                ]).mask(fapar_numpyparray, scene_numpyparray, maskedvalue=demo.testdata.nodatavalue, copy=True)
 
     #
     #    outlier parameters
@@ -183,12 +183,12 @@ def dorasters(inputdirectory, bmakepng = False, bmakeenvi = False, busemask = Fa
     #
     #
     #
-    raw_data_numpydatacube            = yatt.smooth.makedatacube(zerasters, minimumdatavalue=tests.testdata.minimumdatavalue, maximumdatavalue=tests.testdata.maximumdatavalue)
+    raw_data_numpydatacube            = yatt.smooth.makedatacube(zerasters, minimumdatavalue=demo.testdata.minimumdatavalue, maximumdatavalue=demo.testdata.maximumdatavalue)
     outliers_removed_numpydatacube    = yatt.smooth.flaglocalminima(numpy.copy(raw_data_numpydatacube), maxdip, maxdif, maxgap=maxgap, maxpasses=maxpasses)
     outliers_removed_weighttypescube  = yatt.smooth.makeweighttypescube(outliers_removed_numpydatacube, aboutequalepsilon)
     outliers_removed_swetsweightscube = yatt.smooth.makesimpleweightscube(outliers_removed_weighttypescube, weightvalues=yatt.smooth.defaultswetsweightvalues)
-    outliers_removed_whittakercube    = yatt.smooth.whittaker_second_differences(lmbda, outliers_removed_numpydatacube, outliers_removed_swetsweightscube, minimumdatavalue=tests.testdata.minimumdatavalue, maximumdatavalue=tests.testdata.maximumdatavalue, passes=passes, dokeepmaxima=dokeepmaxima)
-    outliers_removed_swetscube        = yatt.smooth.swets(regressionwindow, combinationwindow, outliers_removed_numpydatacube, outliers_removed_swetsweightscube, minimumdatavalue=tests.testdata.minimumdatavalue, maximumdatavalue=tests.testdata.maximumdatavalue)
+    outliers_removed_whittakercube    = yatt.smooth.whittaker_second_differences(lmbda, outliers_removed_numpydatacube, outliers_removed_swetsweightscube, minimumdatavalue=demo.testdata.minimumdatavalue, maximumdatavalue=demo.testdata.maximumdatavalue, passes=passes, dokeepmaxima=dokeepmaxima)
+    outliers_removed_swetscube        = yatt.smooth.swets(regressionwindow, combinationwindow, outliers_removed_numpydatacube, outliers_removed_swetsweightscube, minimumdatavalue=demo.testdata.minimumdatavalue, maximumdatavalue=demo.testdata.maximumdatavalue)
 
     #
     #
@@ -222,20 +222,20 @@ def dorasters(inputdirectory, bmakepng = False, bmakeenvi = False, busemask = Fa
                 #
                 #    actually, on planet Herman one should probably select "05", "15" and  "25" and save them as "01", "11" and "21"
                 #
-                smoothedraster[:] = tests.testdata.nodatavalue
+                smoothedraster[:] = demo.testdata.nodatavalue
                 notnanraster[:] = ~numpy.isnan(zeresults[iIdx])
-                smoothedraster[notnanraster] = numpy.where(zeresults[iIdx][notnanraster]>tests.testdata.maximumdatavalue, tests.testdata.maximumdatavalue, numpy.rint(zeresults[iIdx][notnanraster])) 
+                smoothedraster[notnanraster] = numpy.where(zeresults[iIdx][notnanraster]>demo.testdata.maximumdatavalue, demo.testdata.maximumdatavalue, numpy.rint(zeresults[iIdx][notnanraster])) 
 
-                envi_name = os.path.join(tests.testdata.sztestdatarootdirectory,"fAPAR_%s.img"%(zedates[iIdx]))
+                envi_name = os.path.join(demo.testdata.sztestdatarootdirectory,"fAPAR_%s.img"%(zedates[iIdx]))
                 envi_gdaldataset = osgeo.gdal.GetDriverByName("ENVI").Create(envi_name, ref_rasterxsize, ref_rasterysize, 1, osgeo.gdalconst.GDT_Byte)
                 envi_gdaldataset.SetMetadataItem('values', "{fapar, -, 0, 200, 0, 200, 0, 0.005}",      'ENVI')
-                envi_gdaldataset.SetMetadataItem('flags',  "{" + str(tests.testdata.nodatavalue) + "}", 'ENVI')
+                envi_gdaldataset.SetMetadataItem('flags',  "{" + str(demo.testdata.nodatavalue) + "}", 'ENVI')
                 envi_gdaldataset.SetGeoTransform(ref_geotransform)
                 envi_gdaldataset.SetProjection(ref_projection)
                 envi_gdaldataset.GetRasterBand(1).WriteArray(smoothedraster)
 
                 if do_envi_png :
-                    png_name= os.path.join(tests.testdata.sztestdatarootdirectory,"fAPAR_%s.png"%(zedates[iIdx]))
+                    png_name= os.path.join(demo.testdata.sztestdatarootdirectory,"fAPAR_%s.png"%(zedates[iIdx]))
                     osgeo.gdal.GetDriverByName('PNG').CreateCopy(png_name, envi_gdaldataset)
 
 
@@ -257,21 +257,21 @@ def dorasters(inputdirectory, bmakepng = False, bmakeenvi = False, busemask = Fa
         #
         #    original raster has values 0-200 + no data 255
         #
-        originalraster[:] = tests.testdata.nodatavalue
-        originalisdata[:] = (tests.testdata.minimumdatavalue <= zerasters[iIdx]) & (zerasters[iIdx] <= tests.testdata.maximumdatavalue)
-        originalraster[originalisdata] = numpy.where(zerasters[iIdx][originalisdata]>tests.testdata.maximumdatavalue, tests.testdata.maximumdatavalue, numpy.rint(zerasters[iIdx][originalisdata]))
+        originalraster[:] = demo.testdata.nodatavalue
+        originalisdata[:] = (demo.testdata.minimumdatavalue <= zerasters[iIdx]) & (zerasters[iIdx] <= demo.testdata.maximumdatavalue)
+        originalraster[originalisdata] = numpy.where(zerasters[iIdx][originalisdata]>demo.testdata.maximumdatavalue, demo.testdata.maximumdatavalue, numpy.rint(zerasters[iIdx][originalisdata]))
         #
         #    smoothed raster has (float) values  0-200 + nan's 
         #
-        whitraster[:] = tests.testdata.nodatavalue
+        whitraster[:] = demo.testdata.nodatavalue
         whitnotnan[:] = ~numpy.isnan(zewhitresults[iIdx])
-        whitraster[whitnotnan] = numpy.where(zewhitresults[iIdx][whitnotnan]>tests.testdata.maximumdatavalue, tests.testdata.maximumdatavalue, numpy.rint(zewhitresults[iIdx][whitnotnan]))
+        whitraster[whitnotnan] = numpy.where(zewhitresults[iIdx][whitnotnan]>demo.testdata.maximumdatavalue, demo.testdata.maximumdatavalue, numpy.rint(zewhitresults[iIdx][whitnotnan]))
         #
         #    smoothed raster has (float) values  0-200 + nan's 
         #
-        swetsraster[:] = tests.testdata.nodatavalue
+        swetsraster[:] = demo.testdata.nodatavalue
         swetsnotnan[:] = ~numpy.isnan(zeswetresults[iIdx])
-        swetsraster[swetsnotnan] = numpy.where(zeswetresults[iIdx][swetsnotnan]>tests.testdata.maximumdatavalue, tests.testdata.maximumdatavalue, numpy.rint(zeswetresults[iIdx][swetsnotnan]))
+        swetsraster[swetsnotnan] = numpy.where(zeswetresults[iIdx][swetsnotnan]>demo.testdata.maximumdatavalue, demo.testdata.maximumdatavalue, numpy.rint(zeswetresults[iIdx][swetsnotnan]))
         #
         #
         #
@@ -286,29 +286,29 @@ def dorasters(inputdirectory, bmakepng = False, bmakeenvi = False, busemask = Fa
                 subplots[irow, icol].set_yticklabels([])
 
         row = 0; col = 0
-        subplots[row, col].imshow(zefapars[iIdx], norm=tests.testdata.fapar_norm, cmap=tests.testdata.fapar_cmap)
+        subplots[row, col].imshow(zefapars[iIdx], norm=demo.testdata.fapar_norm, cmap=demo.testdata.fapar_cmap)
         subplots[row, col].set_title("original")
 
         row = 0; col = 1
-        #subplots[row, col].imshow(originalraster.astype(float), norm=tests.testdata.faparnorm, cmap=tests.testdata.faparcolormap)
-        subplots[row, col].imshow(originalraster, norm=tests.testdata.fapar_norm, cmap=tests.testdata.fapar_cmap)
+        #subplots[row, col].imshow(originalraster.astype(float), norm=demo.faparnorm, cmap=demo.faparcolormap)
+        subplots[row, col].imshow(originalraster, norm=demo.testdata.fapar_norm, cmap=demo.testdata.fapar_cmap)
         subplots[row, col].set_title("masked")
 
         row = 0; col = 2
-        #subplots[row, col].imshow(whitraster.astype(float), norm=tests.testdata.faparnorm, cmap=tests.testdata.faparcolormap)
-        subplots[row, col].imshow(whitraster, norm=tests.testdata.fapar_norm, cmap=tests.testdata.fapar_cmap)
+        #subplots[row, col].imshow(whitraster.astype(float), norm=demo.testdata.faparnorm, cmap=demo.testdata.faparcolormap)
+        subplots[row, col].imshow(whitraster, norm=demo.testdata.fapar_norm, cmap=demo.testdata.fapar_cmap)
         subplots[row, col].set_title("whittaker")
 
         row = 0; col = 3
-        #subplots[row, col].imshow(swetsraster.astype(float), norm=tests.testdata.faparnorm, cmap=tests.testdata.faparcolormap)
-        subplots[row, col].imshow(swetsraster, norm=tests.testdata.fapar_norm, cmap=tests.testdata.fapar_cmap)
+        #subplots[row, col].imshow(swetsraster.astype(float), norm=demo.testdata.faparnorm, cmap=demo.testdata.faparcolormap)
+        subplots[row, col].imshow(swetsraster, norm=demo.testdata.fapar_norm, cmap=demo.testdata.fapar_cmap)
         subplots[row, col].set_title("swets")
 
         matplotlib.pyplot.subplots_adjust(left = 0.02, right = 0.98, wspace=0.1, hspace=0.2)
         matplotlib.pyplot.suptitle("Field: %s  -  Date: %s %s" % (os.path.basename(inputdirectory), zedates[iIdx], ('- using sc mask' if busemask else '')) )
 
         if bmakepng:
-            matplotlib.pyplot.savefig(os.path.join(tests.testdata.sztestdatarootdirectory, os.path.basename(inputdirectory) + "_Smoothed_Raster_%s.png"%(zedates[iIdx])), dpi=300)
+            matplotlib.pyplot.savefig(os.path.join(demo.testdata.sztestdatarootdirectory, os.path.basename(inputdirectory) + "_Smoothed_Raster_%s.png"%(zedates[iIdx])), dpi=300)
         else:
             matplotlib.pyplot.show()
 
@@ -325,8 +325,8 @@ if __name__ == '__main__':
     bmakepng  = False
     bmakeenvi = False
     busemask  = True
-    dorasters( os.path.join(tests.testdata.sztestdatarootdirectory, "2-AVy-ofdls9bS8_4_3GLH"  ), bmakepng, bmakeenvi, busemask)
-    dorasters( os.path.join(tests.testdata.sztestdatarootdirectory, "29-AV0TcoCXZjsFpiOBA3gL" ), bmakepng, bmakeenvi, busemask)
-    dorasters( os.path.join(tests.testdata.sztestdatarootdirectory, "190-AVzO_BSZZjsFpiOBRYcR"), bmakepng, bmakeenvi, busemask)
+    dorasters( os.path.join(demo.testdata.sztestdatarootdirectory, "2-AVy-ofdls9bS8_4_3GLH"  ), bmakepng, bmakeenvi, busemask)
+    dorasters( os.path.join(demo.testdata.sztestdatarootdirectory, "29-AV0TcoCXZjsFpiOBA3gL" ), bmakepng, bmakeenvi, busemask)
+    dorasters( os.path.join(demo.testdata.sztestdatarootdirectory, "190-AVzO_BSZZjsFpiOBRYcR"), bmakepng, bmakeenvi, busemask)
 
 

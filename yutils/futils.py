@@ -6,6 +6,10 @@ import logging
 
 
 
+"""
+some misc filesystem utilities and snippets - no rocket science, just tired of googling them each time. 
+"""
+
 #
 #
 #
@@ -105,6 +109,64 @@ def saneFile(szabspath, bmayexist = False, verbose = False):
         return None
 
     if verbose: logging.debug("Valid file path: %s - using: %s", repr(szabspath), repr(szsanepath))
+    return szsanepath
+
+#
+#
+#
+def getDir(szabspath, bmayexist = True, verbose = False):
+    """
+    attempt to check whether path is representing a meaningful directory path,
+    create it if needed and allowed (just the last subdirectory, not the full path)
+    """
+    szsanepath = sanePath(szabspath, verbose=verbose)
+    if not szsanepath: 
+        if verbose: logging.error("Invalid absolute path: %s", repr(szabspath))
+        return None
+    if not saneExistingPath(szsanepath, verbose=verbose):
+        os.mkdir(szsanepath)
+        szsanepath = saneExistingDirectory(szsanepath, verbose=verbose)
+        if not szsanepath: 
+            if verbose: logging.error("Could not create absolute path: %s", repr(szabspath))
+            return None
+        if verbose: logging.debug("Created directory absolute path: %s - using: %s", repr(szabspath), repr(szsanepath))
+        return szsanepath
+    if not bmayexist:
+        if verbose: logging.error("Existing path %s", repr(szabspath))
+        return None
+    if not saneExistingDirectory(szsanepath, verbose=verbose):
+        if verbose: logging.error("Non directory path %s", repr(szabspath))
+        return None
+    if verbose: logging.debug("Existing directory absolute path: %s - using: %s", repr(szabspath), repr(szsanepath))
+    return szsanepath
+
+#
+#
+#
+def getDirPath(szabspath, bmayexist = True, verbose = False):
+    """
+    attempt to check whether path is representing a meaningful directory path,
+    create it if needed and allowed, including missing parents
+    """
+    szsanepath = sanePath(szabspath, verbose=verbose)
+    if not szsanepath: 
+        if verbose: logging.error("Invalid absolute path: %s", repr(szabspath))
+        return None
+    if not saneExistingPath(szsanepath, verbose=verbose):
+        os.makedirs(szsanepath)
+        szsanepath = saneExistingDirectory(szsanepath, verbose=verbose)
+        if not szsanepath: 
+            if verbose: logging.error("Could not create absolute path: %s", repr(szabspath))
+            return None
+        if verbose: logging.debug("Created directory absolute path: %s - using: %s", repr(szabspath), repr(szsanepath))
+        return szsanepath
+    if not bmayexist:
+        if verbose: logging.error("Existing path %s", repr(szabspath))
+        return None
+    if not saneExistingDirectory(szsanepath, verbose=verbose):
+        if verbose: logging.error("Non directory path %s", repr(szabspath))
+        return None
+    if verbose: logging.debug("Existing directory absolute path: %s - using: %s", repr(szabspath), repr(szsanepath))
     return szsanepath
 
 #

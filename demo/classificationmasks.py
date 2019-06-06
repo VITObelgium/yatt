@@ -8,18 +8,18 @@ import osgeo.gdal
 import matplotlib.pyplot
 import yatt.mask
 import yutils.gutils
-import tests.testdata
+import demo.testdata
 
 #
 #
 #
 def domasks(bmakepng):
 
-    fapar_filename = os.path.join(tests.testdata.sztestdatarootdirectory,"31UFS/small_subset_S2B_20180705T105029Z_31UFS_FAPAR_10M_V102.tif")
-    scene_filename = os.path.join(tests.testdata.sztestdatarootdirectory,"31UFS/small_subset_S2B_20180705T105029Z_31UFS_SCENECLASSIFICATION_20M_V102.tif")
-    band4_filename = os.path.join(tests.testdata.sztestdatarootdirectory,"31UFS/small_subset_S2B_20180705T105029Z_31UFS_TOC-B04_10M_V102.tif")
-    band3_filename = os.path.join(tests.testdata.sztestdatarootdirectory,"31UFS/small_subset_S2B_20180705T105029Z_31UFS_TOC-B03_10M_V102.tif")
-    band2_filename = os.path.join(tests.testdata.sztestdatarootdirectory,"31UFS/small_subset_S2B_20180705T105029Z_31UFS_TOC-B02_10M_V102.tif")
+    fapar_filename = os.path.join(demo.testdata.sztestdatarootdirectory,"31UFS/small_subset_S2B_20180705T105029Z_31UFS_FAPAR_10M_V102.tif")
+    scene_filename = os.path.join(demo.testdata.sztestdatarootdirectory,"31UFS/small_subset_S2B_20180705T105029Z_31UFS_SCENECLASSIFICATION_20M_V102.tif")
+    band4_filename = os.path.join(demo.testdata.sztestdatarootdirectory,"31UFS/small_subset_S2B_20180705T105029Z_31UFS_TOC-B04_10M_V102.tif")
+    band3_filename = os.path.join(demo.testdata.sztestdatarootdirectory,"31UFS/small_subset_S2B_20180705T105029Z_31UFS_TOC-B03_10M_V102.tif")
+    band2_filename = os.path.join(demo.testdata.sztestdatarootdirectory,"31UFS/small_subset_S2B_20180705T105029Z_31UFS_TOC-B02_10M_V102.tif")
 
     #
     #    fapar & rgb
@@ -68,7 +68,7 @@ def domasks(bmakepng):
         #
         #    using extractroirasterdataset => sub tile can be written as file
         #
-        fapar_subtile_filename = None # os.path.join(tests.testdata.sztestdatarootdirectory, "tmp_fapar_X%03dY%03d.tif"%(subtileRasterInfo.fulltile_subtile_columnindex, subtileRasterInfo.fulltile_subtile_rowindex))
+        fapar_subtile_filename = None # os.path.join(demo.sztestdatarootdirectory, "tmp_fapar_X%03dY%03d.tif"%(subtileRasterInfo.fulltile_subtile_columnindex, subtileRasterInfo.fulltile_subtile_rowindex))
         fapar_subtile_dataset  = yutils.gutils.extractroirasterdataset(
             fapar_gdaldataset,
             subtileRasterInfo.subtile_upper_left_pixel_columnindex,
@@ -117,8 +117,8 @@ def domasks(bmakepng):
         scene_fulltile_numpyarray = scene_numpyparray.copy()
         scene_fulltile_numpyarray[
             subtileRasterInfo.subtile_upper_left_pixel_rowindex    : subtileRasterInfo.subtile_upper_left_pixel_rowindex    + subtileRasterInfo.subtile_pixel_rows, 
-            subtileRasterInfo.subtile_upper_left_pixel_columnindex : subtileRasterInfo.subtile_upper_left_pixel_columnindex + subtileRasterInfo.subtile_pixel_columns] = tests.testdata.scene_saturated_or_defective_value # red
-        axis.imshow(scene_fulltile_numpyarray, norm=tests.testdata.scene_norm, cmap=tests.testdata.scene_cmap)
+            subtileRasterInfo.subtile_upper_left_pixel_columnindex : subtileRasterInfo.subtile_upper_left_pixel_columnindex + subtileRasterInfo.subtile_pixel_columns] = demo.testdata.scene_saturated_or_defective_value # red
+        axis.imshow(scene_fulltile_numpyarray, norm=demo.testdata.scene_norm, cmap=demo.testdata.scene_cmap)
 
         # [0,1] full fapar
 
@@ -127,8 +127,8 @@ def domasks(bmakepng):
         fapar_fulltile_numpyarray = fapar_numpyparray.copy()
         fapar_fulltile_numpyarray[
             subtileRasterInfo.subtile_upper_left_pixel_rowindex    : subtileRasterInfo.subtile_upper_left_pixel_rowindex    + subtileRasterInfo.subtile_pixel_rows, 
-            subtileRasterInfo.subtile_upper_left_pixel_columnindex : subtileRasterInfo.subtile_upper_left_pixel_columnindex + subtileRasterInfo.subtile_pixel_columns] = tests.testdata.nodatavalue # grey
-        axis.imshow(fapar_fulltile_numpyarray, norm=tests.testdata.fapar_norm, cmap=tests.testdata.fapar_cmap)
+            subtileRasterInfo.subtile_upper_left_pixel_columnindex : subtileRasterInfo.subtile_upper_left_pixel_columnindex + subtileRasterInfo.subtile_pixel_columns] = demo.testdata.nodatavalue # grey
+        axis.imshow(fapar_fulltile_numpyarray, norm=demo.testdata.fapar_norm, cmap=demo.testdata.fapar_cmap)
 
         # [0,2] full rgb
 
@@ -153,13 +153,13 @@ def domasks(bmakepng):
         axis = matplotlib.pyplot.subplot(gridspec[1, 0])
         subtilesrefaxis = axis
         axis.set_xticklabels([]); axis.set_yticklabels([])
-        axis.imshow(scene_subtile, norm=tests.testdata.scene_norm, cmap=tests.testdata.scene_cmap)
+        axis.imshow(scene_subtile, norm=demo.testdata.scene_norm, cmap=demo.testdata.scene_cmap)
 
         # [1,1]
 
         axis = matplotlib.pyplot.subplot(gridspec[1, 1], sharex=subtilesrefaxis, sharey=subtilesrefaxis)
         axis.set_xticklabels([]); axis.set_yticklabels([])
-        axis.imshow(fapar_subtile, norm=tests.testdata.fapar_norm, cmap=tests.testdata.fapar_cmap)
+        axis.imshow(fapar_subtile, norm=demo.testdata.fapar_norm, cmap=demo.testdata.fapar_cmap)
 
         # [1,2]
 
@@ -190,8 +190,8 @@ def domasks(bmakepng):
         axis = matplotlib.pyplot.subplot(gridspec[2, 1], sharex=subtilesrefaxis, sharey=subtilesrefaxis)
         axis.set_xticklabels([]); axis.set_yticklabels([])
         masked_fapar = fapar_subtile.copy()
-        masked_fapar[simple_mask] = tests.testdata.nodatavalue
-        axis.imshow(masked_fapar,  norm=tests.testdata.fapar_norm, cmap=tests.testdata.fapar_cmap)
+        masked_fapar[simple_mask] = demo.testdata.nodatavalue
+        axis.imshow(masked_fapar,  norm=demo.testdata.fapar_norm, cmap=demo.testdata.fapar_cmap)
 
         # [2,2]
 
@@ -222,8 +222,8 @@ def domasks(bmakepng):
         axis = matplotlib.pyplot.subplot(gridspec[3, 1], sharex=subtilesrefaxis, sharey=subtilesrefaxis)
         axis.set_xticklabels([]); axis.set_yticklabels([])
         masked_fapar = fapar_subtile.copy()
-        masked_fapar[conv_mask] = tests.testdata.nodatavalue
-        axis.imshow(masked_fapar,  norm=tests.testdata.fapar_norm, cmap=tests.testdata.fapar_cmap)
+        masked_fapar[conv_mask] = demo.testdata.nodatavalue
+        axis.imshow(masked_fapar,  norm=demo.testdata.fapar_norm, cmap=demo.testdata.fapar_cmap)
 
         # [3,2]
 
@@ -251,7 +251,7 @@ def domasks(bmakepng):
             subtileRasterInfo.fulltile_subtile_rows) )
 
         if bmakepng:
-            matplotlib.pyplot.savefig(os.path.join(tests.testdata.sztestdatarootdirectory, "Masking_X%03dY%03d.png"%(subtileRasterInfo.fulltile_subtile_columnindex,subtileRasterInfo.fulltile_subtile_rowindex)), dpi=300)
+            matplotlib.pyplot.savefig(os.path.join(demo.testdata.sztestdatarootdirectory, "Masking_X%03dY%03d.png"%(subtileRasterInfo.fulltile_subtile_columnindex,subtileRasterInfo.fulltile_subtile_rowindex)), dpi=300)
         else:
             matplotlib.pyplot.show()
         #

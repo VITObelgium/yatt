@@ -8,7 +8,7 @@ import osgeo.gdal
 import matplotlib.pyplot
 import yatt.smooth
 import yutils.dutils
-import tests.testdata
+import demo.testdata
 
 
 #
@@ -191,8 +191,8 @@ def makegraphs(inputdirectory, bmakepng):
         profile_perfect_fapar_pixels_good_field_observations.append(None)
         iIdx += 1
 
-        ptFAPARpattern = tests.testdata.makefilenamepattern(date_yyyymmdd, "FAPAR_10M")
-        ptSCENEpattern = tests.testdata.makefilenamepattern(date_yyyymmdd, "SCENECLASSIFICATION_10M")
+        ptFAPARpattern = demo.testdata.makefilenamepattern(date_yyyymmdd, "FAPAR_10M")
+        ptSCENEpattern = demo.testdata.makefilenamepattern(date_yyyymmdd, "SCENECLASSIFICATION_10M")
 
         szFAPARfilenames =  [f for f in os.listdir(inputdirectory) if re.match(ptFAPARpattern, f)]
         szSCENEfilenames =  [f for f in os.listdir(inputdirectory) if re.match(ptSCENEpattern, f)]
@@ -216,8 +216,8 @@ def makegraphs(inputdirectory, bmakepng):
         #
         #
         total_all_pixels           = fapar_numpyparray.size
-        total_all_fapar_pixels     = fapar_numpyparray[(fapar_numpyparray <= tests.testdata.maximumdatavalue)].size
-        total_perfect_fapar_pixels = fapar_numpyparray[(fapar_numpyparray <= tests.testdata.maximumdatavalue) & (scene_numpyparray < 8) & (scene_numpyparray > 3)].size # "low probability clouds" allowed
+        total_all_fapar_pixels     = fapar_numpyparray[(fapar_numpyparray <= demo.testdata.maximumdatavalue)].size
+        total_perfect_fapar_pixels = fapar_numpyparray[(fapar_numpyparray <= demo.testdata.maximumdatavalue) & (scene_numpyparray < 8) & (scene_numpyparray > 3)].size # "low probability clouds" allowed
 
         #
         #
@@ -233,17 +233,17 @@ def makegraphs(inputdirectory, bmakepng):
         #    averages & scale
         #
         if 0 < total_all_fapar_pixels:
-            average_all_fapar_pixels_all_field_observations = numpy.average(fapar_numpyparray[(fapar_numpyparray <= tests.testdata.maximumdatavalue)])
+            average_all_fapar_pixels_all_field_observations = numpy.average(fapar_numpyparray[(fapar_numpyparray <= demo.testdata.maximumdatavalue)])
             profile_all_fapar_pixels_all_field_observations[iIdx] = average_all_fapar_pixels_all_field_observations / 200.
             if verbose: print ("average fapars data               %s" % (average_all_fapar_pixels_all_field_observations))
 
         if 0 < total_all_fapar_pixels and minfieldokfraction <= (float(total_all_fapar_pixels) / float(total_all_pixels)) :
-            average_all_fapar_pixels_good_field_observation = numpy.average(fapar_numpyparray[(fapar_numpyparray <= tests.testdata.maximumdatavalue)])
+            average_all_fapar_pixels_good_field_observation = numpy.average(fapar_numpyparray[(fapar_numpyparray <= demo.testdata.maximumdatavalue)])
             profile_all_fapar_pixels_good_field_observations[iIdx] = average_all_fapar_pixels_good_field_observation / 200.
             if verbose: print ("average fapars data good fields   %s" % (average_all_fapar_pixels_good_field_observation))
 
         if 0 < total_perfect_fapar_pixels and minfieldokfraction <= (float(total_perfect_fapar_pixels) / float(total_all_pixels)) :
-            average_perfect_fapar_pixels_good_field_observations = numpy.average(fapar_numpyparray[(fapar_numpyparray <= tests.testdata.maximumdatavalue)& (scene_numpyparray < 8) & (scene_numpyparray > 3)])
+            average_perfect_fapar_pixels_good_field_observations = numpy.average(fapar_numpyparray[(fapar_numpyparray <= demo.testdata.maximumdatavalue)& (scene_numpyparray < 8) & (scene_numpyparray > 3)])
             profile_perfect_fapar_pixels_good_field_observations[iIdx] = average_perfect_fapar_pixels_good_field_observations / 200.
             if verbose: print ("average perfect fapar good fields %s" % (average_perfect_fapar_pixels_good_field_observations))
 
@@ -271,8 +271,8 @@ def makegraphs(inputdirectory, bmakepng):
     #
     #
     #
-    mindatavalue = tests.testdata.minimumdatavalue / 200.
-    maxdatavalue = tests.testdata.maximumdatavalue / 200.
+    mindatavalue = demo.testdata.minimumdatavalue / 200.
+    maxdatavalue = demo.testdata.maximumdatavalue / 200.
 
     all_fapar_all_field_raw_data_datacube      = yatt.smooth.makedatacube(profile_all_fapar_pixels_all_field_observations,      minimumdatavalue=mindatavalue, maximumdatavalue=maxdatavalue)
     all_fapar_good_field_raw_data_datacube     = yatt.smooth.makedatacube(profile_all_fapar_pixels_good_field_observations,     minimumdatavalue=mindatavalue, maximumdatavalue=maxdatavalue)
@@ -508,7 +508,7 @@ def makegraphs(inputdirectory, bmakepng):
         matplotlib.pyplot.suptitle(os.path.basename(inputdirectory) + " - Whittaker - dip(%s) dif(%s) lmbda(%s) pass(%s)"%(maxdip, maxdif, lmbda, passes))
 
         if bmakepng:
-            matplotlib.pyplot.savefig(os.path.join(tests.testdata.sztestdatarootdirectory, os.path.basename(inputdirectory) + "_Whitt_Overview.png"), dpi=300)
+            matplotlib.pyplot.savefig(os.path.join(demo.testdata.sztestdatarootdirectory, os.path.basename(inputdirectory) + "_Whitt_Overview.png"), dpi=300)
         else:
             matplotlib.pyplot.show()
         matplotlib.pyplot.close('all')
@@ -603,7 +603,7 @@ def makegraphs(inputdirectory, bmakepng):
 
         matplotlib.pyplot.subplots_adjust(left = 0.05, right = 0.95, wspace=0.1, hspace=0.4)
         matplotlib.pyplot.suptitle(os.path.basename(inputdirectory) + " - Swets - dip(%s) dif(%s) reg(%s) com(%s)"%(maxdip, maxdif, regressionwindow, combinationwindow))
-        matplotlib.pyplot.savefig(os.path.join(tests.testdata.sztestdatarootdirectory, os.path.basename(inputdirectory) + "_Swets_Overview.png"), dpi=300)
+        matplotlib.pyplot.savefig(os.path.join(demo.testdata.sztestdatarootdirectory, os.path.basename(inputdirectory) + "_Swets_Overview.png"), dpi=300)
         #matplotlib.pyplot.show()
         matplotlib.pyplot.close('all') 
     #
@@ -621,7 +621,7 @@ def makegraphs(inputdirectory, bmakepng):
             matplotlib.pyplot.gca().xaxis.set_major_formatter(matplotlib.dates.DateFormatter('%d/%m'))
             matplotlib.pyplot.ylim(-0.05, 1.05)
             if bmakepng and (szbasename is not None) :
-                matplotlib.pyplot.savefig(os.path.join(tests.testdata.sztestdatarootdirectory, os.path.basename(inputdirectory) + "_" + szbasename + ".png"), dpi=300)
+                matplotlib.pyplot.savefig(os.path.join(demo.testdata.sztestdatarootdirectory, os.path.basename(inputdirectory) + "_" + szbasename + ".png"), dpi=300)
             else :
                 matplotlib.pyplot.show()
             matplotlib.pyplot.close('all')
@@ -682,6 +682,6 @@ if __name__ == '__main__':
     #
     #
     bmakepng = False
-    makegraphs(os.path.join(tests.testdata.sztestdatarootdirectory, "2-AVy-ofdls9bS8_4_3GLH"  ), bmakepng)
-    makegraphs(os.path.join(tests.testdata.sztestdatarootdirectory, "29-AV0TcoCXZjsFpiOBA3gL" ), bmakepng)
-    makegraphs(os.path.join(tests.testdata.sztestdatarootdirectory, "190-AVzO_BSZZjsFpiOBRYcR"), bmakepng)
+    makegraphs(os.path.join(demo.testdata.sztestdatarootdirectory, "2-AVy-ofdls9bS8_4_3GLH"  ), bmakepng)
+    makegraphs(os.path.join(demo.testdata.sztestdatarootdirectory, "29-AV0TcoCXZjsFpiOBA3gL" ), bmakepng)
+    makegraphs(os.path.join(demo.testdata.sztestdatarootdirectory, "190-AVzO_BSZZjsFpiOBRYcR"), bmakepng)
