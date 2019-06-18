@@ -20,6 +20,7 @@ def domasks(bmakepng):
     band4_filename = os.path.join(demo.testdata.sztestdatarootdirectory,"31UFS/small_subset_S2B_20180705T105029Z_31UFS_TOC-B04_10M_V102.tif")
     band3_filename = os.path.join(demo.testdata.sztestdatarootdirectory,"31UFS/small_subset_S2B_20180705T105029Z_31UFS_TOC-B03_10M_V102.tif")
     band2_filename = os.path.join(demo.testdata.sztestdatarootdirectory,"31UFS/small_subset_S2B_20180705T105029Z_31UFS_TOC-B02_10M_V102.tif")
+    ignre_filename = os.path.join(demo.testdata.sztestdatarootdirectory,"31UFS/small_subset_S2X_20160101_20190531_31UFS_IGNORE_10M_V102.tif")
 
     #
     #    fapar & rgb
@@ -52,9 +53,18 @@ def domasks(bmakepng):
     #    Convolve2dClassificationMask
     #
     conv_mask_numpyparray = yatt.mask.Convolve2dClassificationMask([
-        yatt.mask.Convolve2dClassificationMask.ConditionSpec(3,  [4, 5, 7],     -0.19),
+        yatt.mask.Convolve2dClassificationMask.ConditionSpec(3,  [4, 5],        -0.19),
         yatt.mask.Convolve2dClassificationMask.ConditionSpec(61, [3, 8, 9, 10],  0.05)
         ]).makemask(scene_numpyparray)
+    #
+    #    Convolve2dClassificationMask - using ignored mask
+    #
+    ignre_gdaldataset = osgeo.gdal.Open(ignre_filename)
+    ignre_numpyarray  = ignre_gdaldataset.ReadAsArray().astype(numpy.bool)
+    ignre_mask_numpyparray = yatt.mask.Convolve2dClassificationMask([
+        yatt.mask.Convolve2dClassificationMask.ConditionSpec(3,  [4, 5],        -0.19),
+        yatt.mask.Convolve2dClassificationMask.ConditionSpec(61, [3, 8, 9, 10],  0.05)
+        ]).makemask(scene_numpyparray, ignre_numpyarray)
     #
     #
     #
@@ -93,6 +103,14 @@ def domasks(bmakepng):
             subtileRasterInfo.subtile_upper_left_pixel_rowindex    : subtileRasterInfo.subtile_upper_left_pixel_rowindex    + subtileRasterInfo.subtile_pixel_rows, 
             subtileRasterInfo.subtile_upper_left_pixel_columnindex : subtileRasterInfo.subtile_upper_left_pixel_columnindex + subtileRasterInfo.subtile_pixel_columns]
 
+        ignre_subtile = ignre_numpyarray[
+            subtileRasterInfo.subtile_upper_left_pixel_rowindex    : subtileRasterInfo.subtile_upper_left_pixel_rowindex    + subtileRasterInfo.subtile_pixel_rows, 
+            subtileRasterInfo.subtile_upper_left_pixel_columnindex : subtileRasterInfo.subtile_upper_left_pixel_columnindex + subtileRasterInfo.subtile_pixel_columns]
+
+        ignre_mask = ignre_mask_numpyparray[
+            subtileRasterInfo.subtile_upper_left_pixel_rowindex    : subtileRasterInfo.subtile_upper_left_pixel_rowindex    + subtileRasterInfo.subtile_pixel_rows, 
+            subtileRasterInfo.subtile_upper_left_pixel_columnindex : subtileRasterInfo.subtile_upper_left_pixel_columnindex + subtileRasterInfo.subtile_pixel_columns]
+
         r_subtile = r_band4_numpyarray[
             subtileRasterInfo.subtile_upper_left_pixel_rowindex    : subtileRasterInfo.subtile_upper_left_pixel_rowindex    + subtileRasterInfo.subtile_pixel_rows, 
             subtileRasterInfo.subtile_upper_left_pixel_columnindex : subtileRasterInfo.subtile_upper_left_pixel_columnindex + subtileRasterInfo.subtile_pixel_columns]
@@ -103,8 +121,8 @@ def domasks(bmakepng):
             subtileRasterInfo.subtile_upper_left_pixel_rowindex    : subtileRasterInfo.subtile_upper_left_pixel_rowindex    + subtileRasterInfo.subtile_pixel_rows, 
             subtileRasterInfo.subtile_upper_left_pixel_columnindex : subtileRasterInfo.subtile_upper_left_pixel_columnindex + subtileRasterInfo.subtile_pixel_columns]
 
-        figure = matplotlib.pyplot.figure(figsize=(6,8))
-        gridspec_rows = 4
+        figure = matplotlib.pyplot.figure(figsize=(4.8,8))
+        gridspec_rows = 5
         gridspec_cols = 3
         gridspec = matplotlib.gridspec.GridSpec(gridspec_rows, gridspec_cols)
         gridspec.update(top = .95, left = 0.01, bottom = 0.01, right = .95, wspace=0.01, hspace=0.01, )
@@ -241,9 +259,31 @@ def domasks(bmakepng):
                 numpy.clip(r_subtile / clip_max, 0.0, 1.0), 
                 numpy.clip(g_subtile / clip_max, 0.0, 1.0), 
                 numpy.clip(b_subtile / clip_max, 0.0, 1.0)), 
-            axis=2))            
+            axis=2))
 
+        # [4,0]
 
+        axis = matplotlib.pyplot.subplot(gridspec[4, 0], sharex=subtilesrefaxis, sharey=subtilesrefaxis)
+        axis.set_xticklabels([]); axis.set_yticklabels([])
+        axis.imshow(ignre_mask, cmap='gray', vmin=0, vmax=1)
+
+        # [4,1]
+
+        axis = matplotlib.pyplot.subplot(gridspec[4, 1], sharex=subtilesrefaxis, sharey=subtilesrefaxis)
+        axis.set_xticklabels([]); axis.set_yticklabels([])
+        masked_fapar = fapar_subtile.copy()
+        masked_fapar[ignre_mask] = demo.testdata.nodatavalue
+        axis.imshow(masked_fapar, norm=demo.testdata.fapar_norm, cmap=demo.testdata.fapar_cmap)
+
+        # [4,2]
+
+        axis = matplotlib.pyplot.subplot(gridspec[4, 2], sharex=subtilesrefaxis, sharey=subtilesrefaxis)
+        axis.set_xticklabels([]); axis.set_yticklabels([])
+        axis.imshow(ignre_subtile, cmap='gray', vmin=0, vmax=1)
+ 
+        #
+        #
+        #
         matplotlib.pyplot.suptitle("Subtile X%03d x Y%03d from 0..%s x 0..%s" % (
             subtileRasterInfo.fulltile_subtile_columnindex, 
             subtileRasterInfo.fulltile_subtile_rowindex,
@@ -257,7 +297,7 @@ def domasks(bmakepng):
         #
         #    close('all') should be enough, but somehow sometimes it still seams to leak
         #
-        figure.clear()              
+        figure.clear()
         matplotlib.pyplot.close(figure)
         matplotlib.pyplot.close('all')
 

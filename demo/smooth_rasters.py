@@ -156,7 +156,7 @@ def dorasters(inputdirectory, bmakepng = False, bmakeenvi = False, busemask = Fa
             zerasters[iIdx] = yatt.mask.Convolve2dClassificationMask([
                 yatt.mask.Convolve2dClassificationMask.ConditionSpec(3,  [4, 5, 7],     -0.90),
                 yatt.mask.Convolve2dClassificationMask.ConditionSpec(11, [3, 8, 9, 10],  0.05)
-                ]).mask(fapar_numpyparray, scene_numpyparray, maskedvalue=demo.testdata.nodatavalue, copy=True)
+                ]).mask(fapar_numpyparray, scene_numpyparray, ignore_numpyarray=None, maskedvalue=demo.testdata.nodatavalue, copy=True)
 
     #
     #    outlier parameters

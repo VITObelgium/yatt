@@ -130,6 +130,7 @@ def getDir(szabspath, bmayexist = True, verbose = False):
             if verbose: logging.error("Could not create absolute path: %s", repr(szabspath))
             return None
         if verbose: logging.debug("Created directory absolute path: %s - using: %s", repr(szabspath), repr(szsanepath))
+        os.chmod(szsanepath, 0o777)
         return szsanepath
     if not bmayexist:
         if verbose: logging.error("Existing path %s", repr(szabspath))

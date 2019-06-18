@@ -10,27 +10,33 @@ import scipy.signal
 class Mask(object):
     '''
     '''
-    
+
     def __init__(self, verbose):
         """
         """
         self._verbose = verbose
-    
 
-    def mask(self, data_numpyarray, scene_numpyparray, maskedvalue=numpy.nan, copy=True):
+    def mask(self, data_numpyarray, scene_numpyparray, ignore_numpyarray = None, maskedvalue=numpy.nan, copy=True):
         '''
+        assumes daughter classes to implement makemask(scene_numpyparray)
+        :param data_numpyarray data (e.g. NDVI) to be masked
+        :param scene_numpyparray classification data used to determine masking condition
+        :param ignore_numpyarray mask specifying pixels to be ignored during the masking process
+        :param maskedvalue value indication masked pixels in the resulting array
         '''
         #
         #    no list of data, nothing to be done
         #
-        if data_numpyarray   is None or data_numpyarray.size <= 0   : raise ValueError("Mask - data raster cannot be None nor empty")
-        if scene_numpyparray is None or scene_numpyparray.size <= 0 : raise ValueError("Mask - classification raster cannot be None nor empty")
-        if not (data_numpyarray.shape == scene_numpyparray.shape)   : raise ValueError("Mask - data and classification rasters mus have same shape")
+        if data_numpyarray   is None or data_numpyarray.size <= 0       : raise ValueError("Mask - data raster cannot be None nor empty")
+        if scene_numpyparray is None or scene_numpyparray.size <= 0     : raise ValueError("Mask - classification raster cannot be None nor empty")
+        if not (data_numpyarray.shape == scene_numpyparray.shape)       : raise ValueError("Mask - data and classification rasters must have same shape")
+        if ignore_numpyarray is not None:
+            if not (ignore_numpyarray.shape == scene_numpyparray.shape) : raise ValueError("Mask - classification and ignore rasters must have same shape")
         #
         #
         #
         masked_numpyarray = data_numpyarray.copy() if copy else data_numpyarray
-        masked_numpyarray[self.makemask(scene_numpyparray)] = maskedvalue
+        masked_numpyarray[self.makemask(scene_numpyparray, ignore_numpyarray)] = maskedvalue
         return masked_numpyarray
 
 #
@@ -58,7 +64,7 @@ class SimpleClassificationMask(Mask):
             lstclassvalue = [lstclassvalue]
         for classvalue in lstclassvalue:
             if not isinstance(classvalue, int) : raise ValueError("SimpleClassificationMask - invalid value in class values list (%s)"%(str(classvalue),))
-        
+
         self.lstclassvalue = lstclassvalue
         self.binvert       = bool(binvert)
 
@@ -66,9 +72,11 @@ class SimpleClassificationMask(Mask):
             logging.info("SimpleClassificationMask(__init__) - masking %s: %s"%( ('all classes but' if binvert else 'classes'), ' '.join(map(str, lstclassvalue)),))
 
 
-    def makemask(self, scene_numpyparray):
+    def makemask(self, scene_numpyparray, ignore_numpyarray = None):
         '''
         '''
+        if ignore_numpyarray is not None:
+            if not (ignore_numpyarray.shape == scene_numpyparray.shape)   : raise ValueError("SimpleClassificationMask.makemask - classification and ignore rasters must have same shape")
 
         mask = numpy.full_like(scene_numpyparray, self.binvert, dtype=bool)
         for classvalue in self.lstclassvalue:
@@ -80,7 +88,10 @@ class SimpleClassificationMask(Mask):
                     classvalue,
                     numpy.count_nonzero(submask), numpy.count_nonzero(submask)/scene_numpyparray.size*100,
                     ('allowed' if self.binvert else 'masked')))
-  
+
+        if ignore_numpyarray is not None:
+            mask[ignore_numpyarray] = False
+
         if self._verbose: 
             logging.info("SimpleClassificationMask.makemask: pixels total: %s - masked: %s (%0.0f%%) - remaining: %s (%0.0f%%)" % (
                 scene_numpyparray.size,
@@ -137,6 +148,7 @@ class Convolve2dClassificationMask(Mask):
 
     def __init__(self, lstConditionSpec, verbose = True):
         '''
+        :param lstConditionSpec list of Convolve2dClassificationMask.ConditionSpec
         '''
         super().__init__(verbose=verbose)
 
@@ -154,9 +166,14 @@ class Convolve2dClassificationMask(Mask):
             for conditionSpec in self.lstConditionSpec:
                 logging.info("    - ConditionSpec - iwindowsize(%s) classes(%s) fthreshold(%s)"%(conditionSpec.iwindowsize, ' '.join(map(str,conditionSpec.lstclassvalue)), conditionSpec.fthreshold))
 
-    def makemask(self, scene_numpyparray):
+    def makemask(self, scene_numpyparray, ignore_numpyarray = None):
         '''
+        :param classification
+        :param ignore_numpyarray mask specifying pixels to be ignored during the masking process (specifically in the convolution step)
         '''
+
+        if ignore_numpyarray is not None:
+            if not (ignore_numpyarray.shape == scene_numpyparray.shape)   : raise ValueError("Convolve2dClassificationMask.makemask - classification and ignore rasters must have same shape")
 
         def makekernel(iwindowsize):
             # using a boxcar (flat) kernel would relate to %-of-surface thresholds
@@ -184,6 +201,9 @@ class Convolve2dClassificationMask(Mask):
                 for classvalue in conditionSpec.lstclassvalue:
                     srcmask[scene_numpyparray == classvalue] = False
 
+            if ignore_numpyarray is not None:
+                srcmask[ignore_numpyarray] = False
+
             convkernel  = makekernel(conditionSpec.iwindowsize)
             convolution = scipy.signal.fftconvolve(srcmask, convkernel, mode='same')
 
@@ -191,8 +211,9 @@ class Convolve2dClassificationMask(Mask):
             mask[submask] = True
 
             if self._verbose: 
-                logging.info("Convolve2dClassificationMask.makemask: pixels total: %s - %sin classes(%s): %s - convoluted(min %0.3f, max %0.3f): %s - masked(above(%0.3f)): %s (%0.0f%%)" % (
+                logging.info("Convolve2dClassificationMask.makemask: pixels total: %s%s - %sin classes(%s): %s - convoluted(min %0.3f, max %0.3f): %s - masked(above(%0.3f)): %s (%0.0f%%)" % (
                     scene_numpyparray.size,
+                    ('' if ignore_numpyarray is None else " - ignored: %s"%numpy.count_nonzero(ignore_numpyarray)),
                     ('' if conditionSpec.fthreshold > 0 else 'NOT '),
                     (' '.join(map(str,conditionSpec.lstclassvalue))),
                     numpy.count_nonzero(srcmask==True),
@@ -200,8 +221,9 @@ class Convolve2dClassificationMask(Mask):
                     abs(conditionSpec.fthreshold), numpy.count_nonzero(submask==True), numpy.count_nonzero(submask==True)/scene_numpyparray.size*100))
 
         if self._verbose: 
-            logging.info("Convolve2dClassificationMask.makemask: pixels total: %s - masked: %s (%0.0f%%) - remaining: %s (%0.0f%%)" % (
+            logging.info("Convolve2dClassificationMask.makemask: pixels total: %s%s - masked: %s (%0.0f%%) - remaining: %s (%0.0f%%)" % (
                 scene_numpyparray.size,
+                ('' if ignore_numpyarray is None else " - ignored: %s"%numpy.count_nonzero(ignore_numpyarray)),
                 numpy.count_nonzero(mask==True), numpy.count_nonzero(mask==True)/scene_numpyparray.size*100,
                 numpy.count_nonzero(mask!=True), numpy.count_nonzero(mask!=True)/scene_numpyparray.size*100))
 
