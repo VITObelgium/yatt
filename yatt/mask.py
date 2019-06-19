@@ -202,10 +202,10 @@ class Convolve2dClassificationMask(Mask):
                     srcmask[scene_numpyparray == classvalue] = False
 
             if ignore_numpyarray is not None:
-                srcmask[ignore_numpyarray] = False
+                srcmask[ignore_numpyarray.astype(numpy.bool)] = False # once there was type checking, then a serpent came along
 
             convkernel  = makekernel(conditionSpec.iwindowsize)
-            convolution = scipy.signal.fftconvolve(srcmask, convkernel, mode='same')
+            convolution = scipy.signal.fftconvolve(srcmask.astype(numpy.int), convkernel, mode='same')
 
             submask[convolution > abs(conditionSpec.fthreshold)] = True
             mask[submask] = True

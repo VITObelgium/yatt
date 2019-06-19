@@ -225,7 +225,7 @@ def gFilesInDir(szabsdir, verbose = False):
     szsanedirpath = saneExistingDirectory(szabsdir, verbose=verbose)
     if not szsanedirpath:
         if verbose: logging.warning("Invalid absolute directory: %s", repr(szabsdir))
-        return
+        return None
     listofitemsindir = os.listdir(szsanedirpath)
     for stringitem in listofitemsindir:
         saneexistingpath = saneExistingPath(os.path.join(szsanedirpath, stringitem), verbose=verbose)
@@ -256,7 +256,7 @@ def ggFilesInDirs(itrszabsdirs, verbose = False):
     """
     if not itrszabsdirs:
         if verbose: logging.warning("Invalid directories iterable: %s", repr(itrszabsdirs))
-        return
+        return None
     for szabsdir in itrszabsdirs:
         for szfilepath in gFilesInDir(szabsdir, verbose=verbose):
             if verbose: logging.debug("Using file: %s", repr(szfilepath))
@@ -283,7 +283,7 @@ def gDirsInDir(szabsdir, verbose = False):
     szsanedirpath = saneExistingDirectory(szabsdir, verbose=verbose)
     if not szsanedirpath:
         if verbose: logging.warning("Invalid absolute directory: %s", repr(szabsdir))
-        return
+        return None
     listofitemsindir = os.listdir(szsanedirpath)
     for stringitem in listofitemsindir:
         saneexistingpath = saneExistingPath(os.path.join(szsanedirpath, stringitem), verbose=verbose)
@@ -314,7 +314,7 @@ def ggDirsInDirs(itrszabsdirs, verbose = False):
     """
     if not itrszabsdirs:
         if verbose: logging.warning("Invalid directories iterable: %s", repr(itrszabsdirs))
-        return
+        return None
     for szabsdir in itrszabsdirs:
         for szdirpath in gDirsInDir(szabsdir, verbose=verbose):
             if verbose: logging.debug("Using directory: %s", repr(szdirpath))
@@ -341,7 +341,7 @@ def gFilesInDirTree(szabsdir):
     szsanedirpath = saneExistingDirectory(szabsdir)
     if not szsanedirpath:
         logging.warning("Invalid abs directory: %s", repr(szabsdir))
-        return
+        return None
     listofitemsindir = os.listdir(szsanedirpath)
     for stringitem in listofitemsindir:
         saneexistingpath = saneExistingPath(os.path.join(szsanedirpath, stringitem))
@@ -352,5 +352,5 @@ def gFilesInDirTree(szabsdir):
                 yield item
         else:
             logging.warning("Directory: %s contains alien entry: %s", repr(szabsdir), repr(saneexistingpath))
-            return
+            return None
 

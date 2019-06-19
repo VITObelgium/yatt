@@ -2,6 +2,7 @@
 #
 #
 import osgeo.gdal
+import numpy
 import math
 import os
 
@@ -156,6 +157,45 @@ def extractroirasterdataset(srcRasterDataset, upperleftpixelcolumnindex, upperle
             yoff  = upperleftpixelrowindex,
             xsize = pixelcolumns,
             ysize = pixelrows))
+
+    return dst_rastr_gdaldataset
+
+#
+#
+#
+def maskrasterfile(srcRasterFileName, mskRasterFileName, maskDataValue, dstRasterFileName):
+    """
+    """
+    srcRasterDataset = osgeo.gdal.Open(srcRasterFileName)
+    mskRasterDataset = osgeo.gdal.Open(mskRasterFileName)
+    return maskrasterdataset(srcRasterDataset, mskRasterDataset, maskDataValue, dstRasterFileName)
+
+#
+#
+#
+def maskrasterdataset(srcRasterDataset, mskRasterDataset, maskDataValue, dstRasterFileName = None):
+    """
+    :param srcRasterDataset
+    :param mskRasterDataset raster specifying pixels to be masked. interpreted as boolean via 'ReadAsArray().astype(numpy.bool)'
+    :param maskDataValue will replace masked data values  
+    assumes srcRasterDataset and mskRasterDataset have identical projection, framing, ...
+    however, if sizes between src and msk does not match, a naive rescue is attempted via 'resampleclassificationrasterdataset'
+    """
+    if ( srcRasterDataset.RasterXSize != mskRasterDataset.RasterXSize or srcRasterDataset.RasterYSize != mskRasterDataset.RasterXSize ):
+        mskRasterDataset = resampleclassificationrasterdataset(mskRasterDataset, srcRasterDataset)
+
+    if dstRasterFileName is not None:
+        dst_rastr_gdaldataset = srcRasterDataset.GetDriver().Create( dstRasterFileName, srcRasterDataset.RasterXSize, srcRasterDataset.RasterYSize, 1, srcRasterDataset.GetRasterBand(1).DataType)
+    else:
+        dst_rastr_gdaldataset = osgeo.gdal.GetDriverByName('MEM').Create( '', srcRasterDataset.RasterXSize, srcRasterDataset.RasterYSize, 1, srcRasterDataset.GetRasterBand(1).DataType)
+
+    dst_rastr_gdaldataset.SetGeoTransform(srcRasterDataset.GetGeoTransform())
+    dst_rastr_gdaldataset.SetProjection(srcRasterDataset.GetProjection())
+
+    dst_numpyarray = srcRasterDataset.GetRasterBand(1).ReadAsArray()
+    dst_numpyarray[mskRasterDataset.GetRasterBand(1).ReadAsArray().astype(numpy.bool)] = maskDataValue
+    dst_rastr_gdaldataset.GetRasterBand(1).WriteArray(dst_numpyarray)
+    dst_rastr_gdaldataset.GetRasterBand(1).SetNoDataValue(maskDataValue)  
 
     return dst_rastr_gdaldataset
 

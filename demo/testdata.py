@@ -22,7 +22,7 @@ sztestdatarootdirectory = os.path.join(sztestdatarootdirectory, "data")
 #
 def makefilenamepattern(date_yyyymmdd, sztype):
     szpattern = "S2[AB]_" + date_yyyymmdd + "T.*?Z_" + sztile_ttttt + "_" + sztype + "_" + szversion_vvvv + ".tif"
-    return re.compile(szpattern, flags=re.IGNORECASE)
+    return re.compile(szpattern, flags=re.RegexFlag.IGNORECASE)
 
 #
 #    some params about the test data

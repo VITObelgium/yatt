@@ -432,11 +432,3 @@ def fake_date_of_mmdd(mmdd, fakeyyyy=defaultfakeyear):
     ifakeyear = iyyyy_from_yyyy(fakeyyyy)
     return datetime.date(ifakeyear, imonth, iday)
 
-
-
-
-#
-#
-#
-if __name__ == '__main__':
-    pass
