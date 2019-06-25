@@ -181,7 +181,7 @@ def maskrasterdataset(srcRasterDataset, mskRasterDataset, maskDataValue, dstRast
     assumes srcRasterDataset and mskRasterDataset have identical projection, framing, ...
     however, if sizes between src and msk does not match, a naive rescue is attempted via 'resampleclassificationrasterdataset'
     """
-    if ( srcRasterDataset.RasterXSize != mskRasterDataset.RasterXSize or srcRasterDataset.RasterYSize != mskRasterDataset.RasterXSize ):
+    if ( srcRasterDataset.RasterXSize != mskRasterDataset.RasterXSize or srcRasterDataset.RasterYSize != mskRasterDataset.RasterYSize ):
         mskRasterDataset = resampleclassificationrasterdataset(mskRasterDataset, srcRasterDataset)
 
     if dstRasterFileName is not None:

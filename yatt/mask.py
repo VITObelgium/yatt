@@ -16,9 +16,14 @@ class Mask(object):
         """
         self._verbose = verbose
 
-    def mask(self, data_numpyarray, scene_numpyparray, ignore_numpyarray = None, maskedvalue=numpy.nan, copy=True):
+    def makemask(self, scene_numpyparray, ignore_numpyarray = None):
         '''
         assumes daughter classes to implement makemask(scene_numpyparray)
+        '''
+        raise NotImplementedError
+
+    def mask(self, data_numpyarray, scene_numpyparray, ignore_numpyarray = None, maskedvalue=numpy.nan, copy=True):
+        '''
         :param data_numpyarray data (e.g. NDVI) to be masked
         :param scene_numpyparray classification data used to determine masking condition
         :param ignore_numpyarray mask specifying pixels to be ignored during the masking process
@@ -90,7 +95,7 @@ class SimpleClassificationMask(Mask):
                     ('allowed' if self.binvert else 'masked')))
 
         if ignore_numpyarray is not None:
-            mask[ignore_numpyarray] = False
+            mask[ignore_numpyarray.astype(bool)] = False # beware of 1's which sometimes can be True's but sometimes can be indices
 
         if self._verbose: 
             logging.info("SimpleClassificationMask.makemask: pixels total: %s - masked: %s (%0.0f%%) - remaining: %s (%0.0f%%)" % (
