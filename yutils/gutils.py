@@ -86,7 +86,12 @@ def resampleclassificationrasterfile(srcRasterFileName, refRasterFileName, dstRa
     #
     src_rastr_gdaldataset = osgeo.gdal.Open(srcRasterFileName)
     ref_rastr_gdaldataset = osgeo.gdal.Open(refRasterFileName)
-    return resampleclassificationrasterdataset(src_rastr_gdaldataset, ref_rastr_gdaldataset, dstRasterFileName=dstRasterFileName)
+    dst_rastr_gdaldataset = resampleclassificationrasterdataset(src_rastr_gdaldataset, ref_rastr_gdaldataset, dstRasterFileName=dstRasterFileName)
+    if dstRasterFileName is None:
+        return dst_rastr_gdaldataset
+    else:
+        dst_rastr_gdaldataset = None
+        return osgeo.gdal.Open(dstRasterFileName)
 
 #
 #
