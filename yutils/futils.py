@@ -21,6 +21,9 @@ def sanePath(szabspath, verbose = False):
     and drive hardcore pythonians up against the wall
     knowing that this module will cause far more problems than it possibly could solve. Ha!
     """
+    if szabspath is None:
+        if verbose: logging.warning("Non absolute path: None")
+        return None
     if not os.path.isabs(szabspath):
         if verbose: logging.warning("Non absolute path: %s", repr(szabspath))
         return None
