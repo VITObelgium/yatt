@@ -341,7 +341,7 @@ def doprofiles(inputdirectory, bmakepng):
     cols = 3
     subplots = numpy.empty( (rows,cols), dtype=object )
 
-    figure = matplotlib.pyplot.figure(figsize=(16,6))
+    figure = matplotlib.pyplot.figure(figsize=(16,9))
     for irow in range(rows):
         for icol in range(cols):
             subplots[irow, icol] = figure.add_subplot(rows, cols, 1 + icol + irow * cols)

@@ -252,8 +252,8 @@ def makegraphs(inputdirectory, bmakepng):
             profile_perfect_fapar_pixels_good_field_observations[iIdx] = average_perfect_fapar_pixels_good_field_observations / 200.
             if verbose: print ("average perfect fapar good fields %s" % (average_perfect_fapar_pixels_good_field_observations))
 
- 
- 
+
+
     #
     #    callback for yatt.smooth.makeweightscube
     #    since we're dealing with scalars, not rasters, this might seem like overkill, but hey...
@@ -272,7 +272,7 @@ def makegraphs(inputdirectory, bmakepng):
 
         #print ("raster[%s] date(%s) weight:%s"%(iRasterIdx, yyyymmdd, weightsraster)) 
         return weightsraster
- 
+
     #
     #
     #
@@ -432,7 +432,7 @@ def makegraphs(inputdirectory, bmakepng):
         cols = 3
         subplots = numpy.empty( (rows,cols), dtype=object )
 
-        figure = matplotlib.pyplot.figure(figsize=(24,9))
+        figure = matplotlib.pyplot.figure(figsize=(16,9))
         for irow in range(rows):
             for icol in range(cols):
                 subplots[irow, icol] = figure.add_subplot(rows, cols, 1 + icol + irow * cols)
@@ -529,7 +529,7 @@ def makegraphs(inputdirectory, bmakepng):
         cols = 3
         subplots = numpy.empty( (rows,cols), dtype=object )
 
-        figure = matplotlib.pyplot.figure(figsize=(24,9))
+        figure = matplotlib.pyplot.figure(figsize=(16,9))
         for irow in range(rows):
             for icol in range(cols):
                 subplots[irow, icol] = figure.add_subplot(rows, cols, 1 + icol + irow * cols)
@@ -609,10 +609,15 @@ def makegraphs(inputdirectory, bmakepng):
         matplotlib.pyplot.subplots_adjust(left = 0.05, right = 0.95, wspace=0.1, hspace=0.4)
         matplotlib.pyplot.suptitle(os.path.basename(inputdirectory) + " - Swets - dip(%s) dif(%s) reg(%s) com(%s)"%(maxdip, maxdif, regressionwindow, combinationwindow))
         matplotlib.pyplot.savefig(os.path.join(demo.testdata.sztestdatarootdirectory, os.path.basename(inputdirectory) + "_Swets_Overview.png"), dpi=300)
-        #matplotlib.pyplot.show()
-        matplotlib.pyplot.close('all') 
+
+        if bmakepng:
+            matplotlib.pyplot.savefig(os.path.join(demo.testdata.sztestdatarootdirectory, os.path.basename(inputdirectory) + "_Whitt_Overview.png"), dpi=300)
+        else:
+            matplotlib.pyplot.show()
+        matplotlib.pyplot.close('all')
+
     #
-    #
+    #    step by step for screenshots
     #
     if True:
         #
@@ -630,7 +635,7 @@ def makegraphs(inputdirectory, bmakepng):
             else :
                 matplotlib.pyplot.show()
             matplotlib.pyplot.close('all')
- 
+
         #
         #    raw_data            - std whittaker
         #                        - unweighted swets
@@ -677,7 +682,7 @@ def makegraphs(inputdirectory, bmakepng):
         #
         lazy("Whitt_Grafiek_t6_", [perfect_fapar_good_field_raw_data_potatoweights_whittaker_datacube,   perfect_fapar_good_field_nooutliers_data_potatoweights_whittaker_datacube, all_fapar_all_field_raw_data_datacube, all_fapar_good_field_raw_data_datacube, perfect_fapar_good_field_raw_data_datacube, perfect_fapar_good_field_nooutliers_data_datacube], ['m', 'b', 'ro', 'go', 'mo', 'bo'] )
         lazy("Swets_Grafiek_t6_", [perfect_fapar_good_field_raw_data_potatoweights_swets_datacube,       perfect_fapar_good_field_nooutliers_data_potatoweights_swets_datacube,     all_fapar_all_field_raw_data_datacube, all_fapar_good_field_raw_data_datacube, perfect_fapar_good_field_raw_data_datacube, perfect_fapar_good_field_nooutliers_data_datacube], ['m', 'b', 'ro', 'go', 'mo', 'bo'] )
- 
+
 #
 #
 #

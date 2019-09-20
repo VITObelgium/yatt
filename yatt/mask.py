@@ -128,11 +128,25 @@ class Convolve2dClassificationMask(Mask):
      [0 0 0 0 0]]
     '''
 
+    @staticmethod
+    def _makekernel(iwindowsize, verbose = False):
+        '''
+        kernal we'll use in our Convolve2dClassificationMask.
+        static method, just to be accessible for test purposes.
+        '''
+        # using a boxcar (flat) kernel would relate to %-of-surface thresholds
+        # using a gaussian compromises between this and smoother masks
+        kernel_vect = scipy.signal.windows.gaussian(iwindowsize, std = iwindowsize/6.0, sym=True)
+        kernel = numpy.outer(kernel_vect, kernel_vect)
+        kernel = kernel / kernel.sum()
+        if verbose: logging.info("Convolve2dClassificationMask._makekernel: kernel size %s - weights: max(%0.5f) - min(%0.5f)" % (iwindowsize, kernel.max(), kernel.min()))
+        return kernel
+
     class ConditionSpec(object):
         '''
         '''
 
-        def __init__(self, iwindowsize, lstclassvalue, fthreshold, verbose = False):
+        def __init__(self, iwindowsize, lstclassvalue, fthreshold, verbose = True):
             '''
             '''
             if iwindowsize is None: 
@@ -145,11 +159,24 @@ class Convolve2dClassificationMask(Mask):
                 if not isinstance(classvalue, int)               : raise ValueError("Convolve2dClassificationMask.ConditionSpec - invalid value in class values list (%s)"%(str(classvalue),))
             if fthreshold is None                                : raise ValueError("Convolve2dClassificationMask.ConditionSpec - fthreshold not specified")
             if not isinstance(fthreshold, (int, float))          : raise ValueError("Convolve2dClassificationMask.ConditionSpec - invalid fthreshold parameter (%s)"%(str(fthreshold),))
+            if not abs(fthreshold) <= 1                          : raise ValueError("Convolve2dClassificationMask.ConditionSpec - fthreshold (%s) must be less than 1"%(str(fthreshold),))
 
             self.iwindowsize   = iwindowsize
             self.lstclassvalue = lstclassvalue
             self.fthreshold    = fthreshold
-            if verbose: logging.info("Convolve2dClassificationMask.ConditionSpec(__init__) - iwindowsize(%3s) classes(%s) fthreshold(%s)"%(self.iwindowsize, ' '.join(map(str,self.lstclassvalue)), self.fthreshold))
+            self.convkernel    = Convolve2dClassificationMask._makekernel(self.iwindowsize, False)
+
+            if verbose: 
+                logging.info("Convolve2dClassificationMask.ConditionSpec(__init__) - iwindowsize(%3s) classes(%s) fthreshold(%s)"%(self.iwindowsize, ' '.join(map(str,self.lstclassvalue)), self.fthreshold))
+                logging.info("    - kernel weights maximum(%0.5f) second(%0.5f) minimum(%0.5f)"%(self.convkernel.max(), self.convkernel[1+int(iwindowsize/2), int(iwindowsize/2)], self.convkernel.min()))
+                if self.fthreshold <= self.convkernel.max():
+                    logging.info("    - kernel maximum(%0.5f) <= fthreshold(%s) => solitary pixels will be flagged"%(self.convkernel.max(), self.fthreshold))
+                    logging.info("    - solitary pixels convolute to at least %s pixels <= fthreshold(%s)"%( (self.fthreshold <= self.convkernel).sum(), self.fthreshold))
+                else:
+                    logging.info("    - kernel maximum(%0.5f) > fthreshold(%s) => solitary pixels will NOT be flagged"%(self.convkernel.max(), self.fthreshold))
+                    logging.info("    - minimal ~%s pixels (~%s%% of kernel surface) are needed to start flagging"%( int(self.fthreshold/self.convkernel.max()+0.5), int(100*int(self.fthreshold/self.convkernel.max()+0.5)/self.convkernel.size) ))
+                    logging.info("    - typical ~%s pixels (~%s%% of kernel surface) start significant clusters"%( int(self.fthreshold/self.convkernel.mean()+0.5), int(100*int(self.fthreshold/self.convkernel.mean()+0.5)/self.convkernel.size) ))
+                    
 
     def __init__(self, lstConditionSpec, verbose = True):
         '''
@@ -178,16 +205,7 @@ class Convolve2dClassificationMask(Mask):
         '''
 
         if ignore_numpyarray is not None:
-            if not (ignore_numpyarray.shape == scene_numpyparray.shape)   : raise ValueError("Convolve2dClassificationMask.makemask - classification and ignore rasters must have same shape")
-
-        def makekernel(iwindowsize):
-            # using a boxcar (flat) kernel would relate to %-of-surface thresholds
-            # using a gaussian compromises between this and smoother masks
-            kernel_vect = scipy.signal.windows.gaussian(iwindowsize, std = iwindowsize/6.0, sym=True)
-            kernel = numpy.outer(kernel_vect, kernel_vect)
-            kernel = kernel / kernel.sum()
-            if self._verbose: logging.info("Convolve2dClassificationMask.makemask: kernel size %s - weights: max(%0.5f) - min(%0.5f)" % (iwindowsize, kernel.max(), kernel.min()))
-            return kernel
+            if not (ignore_numpyarray.shape == scene_numpyparray.shape) : raise ValueError("Convolve2dClassificationMask.makemask - classification and ignore rasters must have same shape")
 
         mask = numpy.zeros_like(scene_numpyparray, dtype=bool)
 
@@ -196,7 +214,7 @@ class Convolve2dClassificationMask(Mask):
         for conditionSpec in self.lstConditionSpec:
 
             submask = numpy.zeros_like(scene_numpyparray, dtype=bool)
- 
+
             if conditionSpec.fthreshold > 0:
                 srcmask = numpy.zeros_like(scene_numpyparray, dtype=bool)
                 for classvalue in conditionSpec.lstclassvalue:
@@ -209,8 +227,7 @@ class Convolve2dClassificationMask(Mask):
             if ignore_numpyarray is not None:
                 srcmask[ignore_numpyarray.astype(numpy.bool)] = False # once there was type checking, then a serpent came along
 
-            convkernel  = makekernel(conditionSpec.iwindowsize)
-            convolution = scipy.signal.fftconvolve(srcmask.astype(numpy.int), convkernel, mode='same')
+            convolution = scipy.signal.fftconvolve(srcmask.astype(numpy.int), conditionSpec.convkernel, mode='same')
 
             submask[convolution > abs(conditionSpec.fthreshold)] = True
             mask[submask] = True
