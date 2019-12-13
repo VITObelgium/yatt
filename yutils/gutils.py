@@ -121,6 +121,46 @@ def resampleclassificationrasterdataset(srcRasterDataset, refRasterFileDataset, 
 #
 #
 #
+def subsamplerasterdatafile(srcRasterFileName, iWindowSize, dstRasterFileName):
+    """
+    """
+    src_rastr_gdaldataset = osgeo.gdal.Open(srcRasterFileName)
+    return subsamplerasterdataset(src_rastr_gdaldataset, iWindowSize, dstRasterFileName=dstRasterFileName)
+
+#
+#
+#
+def subsamplerasterdataset(srcRasterDataset, iWindowSize, dstRasterFileName = None):
+    """
+    subsamples source to destination by averaging over a fixed window. 
+    'degrade the resolution of an image'; actually simple Glimpse.IMGthin-alike.
+    uses gdal.Translate with method 'GRA_Average' => do NOT use for classifications.
+    """
+    #
+    # https://gdal.org/programs/gdal_translate.html : Target resolution must be expressed in georeferenced units. Both must be positive values.
+    # https://gdal.org/api/gdalwarp_cpp.html?highlight=gra_mode
+    # - use osgeo.gdalconst.GRA_Mode instead of osgeo.gdal.GRA_Average in case of classifications.
+    # - try osgeo.gdalconst.GRA_Max as soon as our default mep gdal version supports it (version 2.2.3 ?).
+    #
+    dst_rastr_gdaldataset = osgeo.gdal.Translate(
+        '' if dstRasterFileName is None else dstRasterFileName, 
+        srcRasterDataset, 
+        options=osgeo.gdal.TranslateOptions(
+            format      = 'MEM' if dstRasterFileName is None else None,
+            xRes        = abs(iWindowSize*srcRasterDataset.GetGeoTransform()[1]),
+            yRes        = abs(iWindowSize*srcRasterDataset.GetGeoTransform()[5]),
+            noData      = srcRasterDataset.GetRasterBand(1).GetNoDataValue(),
+            resampleAlg = osgeo.gdal.GRA_Average ))
+
+    if dstRasterFileName is None:
+        return dst_rastr_gdaldataset
+    else:
+        dst_rastr_gdaldataset = None
+        return osgeo.gdal.Open(dstRasterFileName)
+
+#
+#
+#
 def extractroirasterfile(srcRasterFileName, upper_left_pixel_columnindex, upper_left_pixel_rowindex, pixel_columns, pixel_rows, dstRasterFileName):
     """
     """
@@ -163,7 +203,15 @@ def extractroirasterdataset(srcRasterDataset, upperleftpixelcolumnindex, upperle
             xsize = pixelcolumns,
             ysize = pixelrows))
 
-    return dst_rastr_gdaldataset
+    if dstRasterFileName is None:
+        return dst_rastr_gdaldataset
+    else:
+        #
+        #    force the file to be written before returning.
+        #    yes, this costs computer time. yes, this saves human headaches.
+        #
+        dst_rastr_gdaldataset = None
+        return osgeo.gdal.Open(dstRasterFileName)
 
 #
 #
